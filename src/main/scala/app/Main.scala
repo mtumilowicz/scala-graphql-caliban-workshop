@@ -5,7 +5,6 @@ import app.gateway.customer.CustomerHttpController
 import app.infrastructure.config._
 import caliban.Http4sAdapter
 import cats.effect._
-import fs2.Stream.Compiler._
 import org.http4s.HttpApp
 import org.http4s.implicits._
 import org.http4s.server.Router
