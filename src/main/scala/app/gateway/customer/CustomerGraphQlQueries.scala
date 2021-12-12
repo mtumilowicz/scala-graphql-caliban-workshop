@@ -9,8 +9,9 @@ case class CustomerGraphQlQueries private (findById: CustomerId => URIO[Customer
 
 object CustomerGraphQlQueries {
 
-  def apply(): CustomerGraphQlQueries = {
+  def apply(baseUrl: String): CustomerGraphQlQueries = {
+    val rootUri = s"$baseUrl/customers"
 
-    CustomerGraphQlQueries(id => CustomerServiceProxy.getById(id).map(_.map(CustomerApiOutput("", _))))
+    CustomerGraphQlQueries(id => CustomerServiceProxy.getById(id).map(_.map(CustomerApiOutput(rootUri, _))))
   }
 }

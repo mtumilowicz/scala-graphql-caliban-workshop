@@ -23,9 +23,10 @@ object Main extends App {
       for {
         cfg <- getAppConfig
         _ <- logging.log.info(s"Starting with $cfg")
-        interpreter <- GraphQlController.interpreter
+        baseUrl = cfg.http.baseUrl
+        interpreter <- GraphQlController(baseUrl).interpreter
         httpApp = Router[AppTask](
-          "/customers" -> new CustomerHttpController().routes(s"${cfg.http.baseUrl}/customers"),
+          "/customers" -> CustomerHttpController(baseUrl).routes,
            "/graphql" -> CORS.httpRoutes(Http4sAdapter.makeHttpService(interpreter))
         ).orNotFound
         _ <- runHttp(httpApp, cfg.http.port)

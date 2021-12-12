@@ -18,7 +18,7 @@ object CustomerControllerSpec extends DefaultRunnableSpec {
 
   type CustomerTask[A] = RIO[CustomerServiceEnv, A]
 
-  val app = new CustomerHttpController[CustomerServiceEnv]().routes("").orNotFound
+  val app = CustomerHttpController[CustomerServiceEnv]("").routes.orNotFound
 
   override def spec =
     suite("CustomerService")(
@@ -31,7 +31,7 @@ object CustomerControllerSpec extends DefaultRunnableSpec {
           Some(
             json"""{
             "id": "1",
-            "url": "/1",
+            "url": "/customers/1",
             "name": "Test",
             "locked":false
           }""")

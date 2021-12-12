@@ -18,7 +18,7 @@ object Test extends DefaultRunnableSpec  {
       testM("should create new customer") {
         val actual: ZIO[CustomerServiceEnv, Throwable, String] = for {
           _ <- CustomerServiceProxy.create(NewCustomerCommand("MTU", true))
-          interpreter <- GraphQlController.interpreter
+          interpreter <- GraphQlController("").interpreter
           result <- interpreter
             .execute(
               """

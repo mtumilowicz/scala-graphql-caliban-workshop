@@ -7,11 +7,11 @@ import caliban.schema.GenericSchema
 import caliban.{CalibanError, GraphQLInterpreter, RootResolver}
 import zio.IO
 
-object GraphQlController extends GenericSchema[CustomerServiceEnv] {
+case class GraphQlController(baseUrl: String) extends GenericSchema[CustomerServiceEnv] {
 
   case class Queries(customers: CustomerGraphQlQueries)
 
-  private val queries = Queries(CustomerGraphQlQueries())
+  private val queries = Queries(CustomerGraphQlQueries(baseUrl))
 
   val interpreter: IO[CalibanError.ValidationError, GraphQLInterpreter[CustomerServiceEnv, CalibanError]] =
     graphQL(RootResolver(queries)).interpreter

@@ -12,10 +12,12 @@ import zio.interop.catz._
 import org.http4s.HttpRoutes
 import zio._
 
-class CustomerHttpController[R <: CustomerServiceEnv] {
+case class CustomerHttpController[R <: CustomerServiceEnv](baseUrl: String) {
+  private val rootUri = s"$baseUrl/customers"
+
   type CustomerTask[A] = RIO[R, A]
 
-  def routes(rootUri: String): HttpRoutes[RIO[R, *]] = {
+  val routes: HttpRoutes[RIO[R, *]] = {
 
     val dsl: Http4sDsl[CustomerTask] = Http4sDsl[CustomerTask]
     import dsl._
