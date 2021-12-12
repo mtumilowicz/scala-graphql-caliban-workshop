@@ -5,7 +5,7 @@ import app.gateway.HTTPSpec._
 import app.gateway.customer.CustomerHttpController
 import app.gateway.customer.out.CustomerApiOutput
 import app.infrastructure.config.DependencyConfig
-import io.circe.Decoder
+import io.circe.{Decoder, Json}
 import io.circe.literal._
 import org.http4s._
 import org.http4s.circe._
@@ -37,28 +37,13 @@ object CustomerControllerSpec extends DefaultRunnableSpec {
           }""")
         )
       },
-      testM("should list all customers") {
-        val setupReq =
-          request[CustomerTask](Method.POST, "/")
-            .withEntity(json"""{"name": "Test"}""")
-        val req = request[CustomerTask](Method.GET, "/")
-        checkRequest(
-          app.run(setupReq) *> app.run(setupReq) *> app.run(req),
-          Status.Ok,
-          Some(
-            json"""[
-              {"id": "1", "url": "/1", "name": "Test", "locked":false},
-              {"id": "2", "url": "/2", "name": "Test", "locked":false}
-            ]""")
-        )
-      },
       testM("should delete customer by id") {
         val setupReq =
           request[CustomerTask](Method.POST, "/")
             .withEntity(json"""{"name": "Test"}""")
         val deleteReq =
           (id: String) => request[CustomerTask](Method.DELETE, s"/$id")
-        val req = request[CustomerTask](Method.GET, "/")
+        val req = request[CustomerTask](Method.GET, "/id")
         checkRequest(
           app
             .run(setupReq)
@@ -70,21 +55,8 @@ object CustomerControllerSpec extends DefaultRunnableSpec {
               resp.as[CustomerApiOutput].map(_.id)
             }
             .flatMap(id => app.run(deleteReq(id))) *> app.run(req),
-          Status.Ok,
-          Some(json"""[]""")
-        )
-      },
-      testM("should delete all customers") {
-        val setupReq =
-          request[CustomerTask](Method.POST, "/")
-            .withEntity(json"""{"name": "Test"}""")
-        val deleteReq = request[CustomerTask](Method.DELETE, "/")
-        val req = request[CustomerTask](Method.GET, "/")
-        checkRequest(
-          app.run(setupReq) *> app.run(setupReq) *> app
-            .run(deleteReq) *> app.run(req),
-          Status.Ok,
-          Some(json"""[]""")
+          Status.NotFound,
+          Option.empty[Json]
         )
       }
     ).provideSomeLayer[ZEnv](DependencyConfig.inMemory.appLayer)
