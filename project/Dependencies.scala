@@ -4,6 +4,7 @@ object Dependencies {
 
   object Versions {
     val betterMonadicFor = "0.3.1"
+    val caliban          = "1.1.0"
     val circe            = "0.14.1"
     val http4s           = "0.21.26"
     val jawn             = "1.0.1"
@@ -19,8 +20,8 @@ object Dependencies {
 
   val App =
     List(
-      "com.github.ghostdogpr"         %% "caliban"                       % "1.1.0",
-      "com.github.ghostdogpr"         %% "caliban-http4s"                % "1.1.0",
+      "com.github.ghostdogpr"         %% "caliban"                       % caliban,
+      "com.github.ghostdogpr"         %% "caliban-http4s"                % caliban,
       "com.github.pureconfig"        %% "pureconfig"          % pureConfig,
       "dev.zio"                      %% "zio-interop-cats"    % zioInteropCats,
       "dev.zio"                      %% "zio-logging-slf4j"   % zioLogging,
