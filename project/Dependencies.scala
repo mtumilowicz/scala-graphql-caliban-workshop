@@ -5,9 +5,6 @@ object Dependencies {
   object Versions {
     val betterMonadicFor = "0.3.1"
     val circe            = "0.14.1"
-    val doobie           = "0.13.4"
-    val flyway           = "8.0.4"
-    val h2               = "1.4.200"
     val http4s           = "0.21.26"
     val jawn             = "1.0.1"
     val kindProjector    = "0.13.2"
@@ -25,7 +22,6 @@ object Dependencies {
       "com.github.ghostdogpr"         %% "caliban"                       % "1.1.0",
       "com.github.ghostdogpr"         %% "caliban-http4s"                % "1.1.0",
       "com.github.pureconfig"        %% "pureconfig"          % pureConfig,
-      "com.h2database"                % "h2"                  % h2,
       "dev.zio"                      %% "zio-interop-cats"    % zioInteropCats,
       "dev.zio"                      %% "zio-logging-slf4j"   % zioLogging,
       "dev.zio"                      %% "zio-logging"         % zioLogging,
@@ -38,13 +34,9 @@ object Dependencies {
       "org.apache.logging.log4j"      % "log4j-api"           % log4j,
       "org.apache.logging.log4j"      % "log4j-core"          % log4j,
       "org.apache.logging.log4j"      % "log4j-slf4j-impl"    % log4j,
-      "org.flywaydb"                  % "flyway-core"         % flyway,
       "org.http4s"                   %% "http4s-blaze-server" % http4s,
       "org.http4s"                   %% "http4s-circe"        % http4s,
       "org.http4s"                   %% "http4s-dsl"          % http4s,
-      "org.tpolecat"                 %% "doobie-core"         % doobie,
-      "org.tpolecat"                 %% "doobie-h2"           % doobie,
-      "org.tpolecat"                 %% "doobie-hikari"       % doobie,
       "org.typelevel"                %% "jawn-parser"         % jawn  % "test",
       compilerPlugin("com.olegpy" %% "better-monadic-for" % betterMonadicFor),
       compilerPlugin(("org.typelevel" % "kind-projector"      % kindProjector).cross(CrossVersion.full))
