@@ -1,12 +1,11 @@
 package app.infrastructure.config
 
-import app.infrastructure.config.db.DatabaseConfig
 import app.infrastructure.config.http.HttpConfig
 import pureconfig._
 import pureconfig.generic.semiauto._
 import zio._
 
-final case class AppConfig(http: HttpConfig, database: DatabaseConfig)
+final case class AppConfig(http: HttpConfig)
 
 object AppConfig {
 

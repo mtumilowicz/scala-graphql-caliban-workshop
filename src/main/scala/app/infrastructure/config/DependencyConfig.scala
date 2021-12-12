@@ -2,7 +2,6 @@ package app.infrastructure.config
 
 import app.domain._
 import app.infrastructure.config.customer.CustomerConfig
-import app.infrastructure.config.db.DatabaseConfig
 import app.infrastructure.config.http.HttpConfig
 import app.infrastructure.config.id.IdConfig
 import zio.blocking.Blocking
@@ -17,7 +16,7 @@ object DependencyConfig {
     AppConfigEnv with Logging with Blocking with Console
 
   type GatewayEnv =
-    CoreEnv with HttpConfigEnv with DatabaseConfigEnv
+    CoreEnv with HttpConfigEnv
 
   type InternalRepositoryEnv =
     GatewayEnv with IdProviderEnv
@@ -39,7 +38,7 @@ object DependencyConfig {
       Blocking.any ++ AppConfig.live ++ Slf4jLogger.make((_, msg) => msg) ++ Console.live
 
     val gateway: ZLayer[CoreEnv, Throwable, GatewayEnv] =
-      HttpConfig.fromAppConfig ++ DatabaseConfig.fromAppConfig ++ ZLayer.identity
+      HttpConfig.fromAppConfig ++ ZLayer.identity
 
     val internalRepository: ZLayer[GatewayEnv, Throwable, InternalRepositoryEnv] =
       IdConfig.uuidRepository ++ ZLayer.identity
