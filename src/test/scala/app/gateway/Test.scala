@@ -1,6 +1,7 @@
 package app.gateway
 
-import app.domain.{CustomerServiceEnv, NewCustomerCommand}
+import app.domain.customer._
+import app.domain.customer.NewCustomerCommand
 import app.infrastructure.config.DependencyConfig
 import app.infrastructure.config.customer.CustomerServiceProxy
 import io.circe.{Json, parser}

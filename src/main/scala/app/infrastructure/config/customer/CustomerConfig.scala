@@ -1,6 +1,6 @@
 package app.infrastructure.config.customer
 
-import app.domain._
+import app.domain.customer._
 import app.infrastructure.customer.CustomerInMemoryRepository
 import zio.blocking.Blocking
 import zio.{URLayer, ZIO, ZLayer}

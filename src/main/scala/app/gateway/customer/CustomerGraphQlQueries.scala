@@ -1,6 +1,6 @@
 package app.gateway.customer
 
-import app.domain.{CustomerId, CustomerServiceEnv}
+import app.domain.customer._
 import app.gateway.customer.out.CustomerApiOutput
 import app.infrastructure.config.customer.CustomerServiceProxy
 import zio.URIO

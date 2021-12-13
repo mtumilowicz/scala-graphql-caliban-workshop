@@ -1,6 +1,6 @@
 package app.gateway.customer.out
 
-import app.domain._
+import app.domain.customer._
 import io.circe.generic.semiauto._
 import io.circe.{Decoder, Encoder}
 

@@ -1,6 +1,6 @@
 package app.gateway
 
-import app.domain.CustomerServiceEnv
+import app.domain.customer._
 import app.gateway.customer.CustomerGraphQlQueries
 import caliban.GraphQL.graphQL
 import caliban.schema.GenericSchema

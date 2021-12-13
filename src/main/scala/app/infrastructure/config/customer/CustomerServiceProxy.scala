@@ -1,6 +1,6 @@
 package app.infrastructure.config.customer
 
-import app.domain.{Customer, CustomerId, CustomerServiceEnv, NewCustomerCommand}
+import app.domain.customer._
 import zio._
 
 object CustomerServiceProxy {
