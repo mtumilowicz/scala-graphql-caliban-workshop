@@ -2,13 +2,13 @@ package app
 
 import app.gateway.GraphQlController
 import app.gateway.customer.CustomerHttpController
+import app.infrastructure.config.DependencyConfig.AppEnv
 import app.infrastructure.config._
 import caliban.Http4sAdapter
-import cats.effect._
 import org.http4s.HttpApp
+import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.implicits._
 import org.http4s.server.Router
-import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.middleware.CORS
 import zio.clock.Clock
 import zio.interop.catz._
@@ -27,7 +27,7 @@ object Main extends App {
         interpreter <- GraphQlController(baseUrl).interpreter
         httpApp = Router[AppTask](
           "/customers" -> CustomerHttpController(baseUrl).routes,
-           "/graphql" -> CORS.httpRoutes(Http4sAdapter.makeHttpService(interpreter))
+           "/graphql" -> CORS.policy(Http4sAdapter.makeHttpService(interpreter))
         ).orNotFound
         _ <- runHttp(httpApp, cfg.http.port)
       } yield ZExitCode.success
@@ -37,19 +37,17 @@ object Main extends App {
       .orDie
   }
 
-  def runHttp[R <: Clock](
-                           httpApp: HttpApp[RIO[R, *]],
+  def runHttp[R <: AppEnv with Clock](
+                           httpApp: HttpApp[AppTask],
                            port: Int
                          ): ZIO[R, Throwable, Unit] = {
-    type Task[A] = RIO[R, A]
-    ZIO.runtime[R].flatMap { implicit rts =>
-      BlazeServerBuilder
-        .apply[Task](rts.platform.executor.asEC)
+    for {
+      _ <- BlazeServerBuilder.apply[AppTask]
         .bindHttp(port, "0.0.0.0")
-        .withHttpApp(CORS(httpApp))
+        .withHttpApp(CORS.policy(httpApp))
         .serve
-        .compile[Task, Task, ExitCode]
+        .compile
         .drain
-    }
+    } yield ()
   }
 }
