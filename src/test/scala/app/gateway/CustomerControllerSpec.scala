@@ -5,7 +5,7 @@ import app.gateway.HTTPSpec._
 import app.gateway.customer.CustomerHttpController
 import app.gateway.customer.out.CustomerApiOutput
 import app.infrastructure.config.DependencyConfig
-import io.circe.{Decoder, Json}
+import io.circe.Decoder
 import io.circe.literal._
 import org.http4s._
 import org.http4s.circe._
@@ -25,17 +25,13 @@ object CustomerControllerSpec extends DefaultRunnableSpec {
       testM("should create new customer") {
         val req = request[CustomerTask](Method.POST, "/")
           .withEntity(json"""{"name": "Test"}""")
-        checkRequest(
-          app.run(req),
-          Status.Created,
-          Some(
+        checkBody(app.run(req),
             json"""{
             "id": "1",
             "url": "/customers/1",
             "name": "Test",
             "locked":false
           }""")
-        )
       },
       testM("should delete customer by id") {
         val setupReq =
@@ -44,7 +40,7 @@ object CustomerControllerSpec extends DefaultRunnableSpec {
         val deleteReq =
           (id: String) => request[CustomerTask](Method.DELETE, s"/$id")
         val req = request[CustomerTask](Method.GET, "/id")
-        checkRequest(
+        checkStatus(
           app
             .run(setupReq)
             .flatMap { resp =>
@@ -55,8 +51,7 @@ object CustomerControllerSpec extends DefaultRunnableSpec {
               resp.as[CustomerApiOutput].map(_.id)
             }
             .flatMap(id => app.run(deleteReq(id))) *> app.run(req),
-          Status.NotFound,
-          Option.empty[Json]
+          Status.NotFound
         )
       }
     ).provideSomeLayer[ZEnv](DependencyConfig.inMemory.appLayer)

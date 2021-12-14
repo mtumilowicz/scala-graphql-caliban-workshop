@@ -13,19 +13,21 @@ object HTTPSpec {
                      uri: String
                    ): Request[F] = Request(method = method, uri = Uri.fromString(uri).toOption.get)
 
-  def checkRequest[R, A](
-                          actual: RIO[R, Response[RIO[R, *]]],
-                          expectedStatus: Status,
-                          expectedBody: Option[A]
+  def checkStatus[R, A](actualEffect: RIO[R, Response[RIO[R, *]]], expectedStatus: Status): RIO[R, TestResult] =
+    for {
+      actual <- actualEffect
+      status = actual.status
+    } yield assert(status)(equalTo(expectedStatus))
+
+  def checkBody[R, A](
+                       actualEffect: RIO[R, Response[RIO[R, *]]],
+                       expectedBody: A
                         )(implicit
                           ev: EntityDecoder[RIO[R, *], A]
-                        ): RIO[R, TestResult] =
+                        ): RIO[R, TestResult] = {
     for {
-      actual <- actual
-      bodyResult <- expectedBody
-        .fold[RIO[R, TestResult]](
-          assertM(actual.bodyText.compile.toVector)(not(isEmpty))
-        )(expected => assertM(actual.as[A])(equalTo(expected)))
-      statusResult = assert(actual.status)(equalTo(expectedStatus))
-    } yield bodyResult && statusResult
+      actual <- actualEffect
+      testResult <- assertM(actual.as[A])(equalTo(expectedBody))
+    } yield testResult
+  }
 }
