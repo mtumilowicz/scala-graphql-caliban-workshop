@@ -2,11 +2,13 @@ package app.infrastructure.config.customer
 
 import app.domain.customer._
 import zio._
+import zio.stream.ZStream
+import zio.stream.interop.fs2z._
 
 object CustomerServiceProxy {
 
-  val getAll: RIO[CustomerServiceEnv, fs2.Stream[Task, Customer]] =
-    RIO.access(_.get.getAll)
+  val getAll: ZStream[CustomerServiceEnv, Throwable, Customer] =
+    ZStream.accessStream(_.get.getAll.toZStream())
 
   val deleteAll: URIO[CustomerServiceEnv, Unit] =
     ZIO.accessM(_.get.deleteAll)

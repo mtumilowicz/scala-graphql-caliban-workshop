@@ -1,7 +1,7 @@
 package app.gateway
 
 import app.domain.ApiServiceEnv
-import app.gateway.customer.{CustomerGraphQlMutations, CustomerGraphQlQueries}
+import app.gateway.customer.{CustomerGraphQlMutations, CustomerGraphQlQueries, CustomerGraphQlSubscriptions}
 import caliban.GraphQL.graphQL
 import caliban.schema.GenericSchema
 import caliban.wrappers.Wrappers._
@@ -15,9 +15,11 @@ case class GraphQlController(baseUrl: String) extends GenericSchema[ApiServiceEn
 
   case class Queries(customers: CustomerGraphQlQueries)
   case class Mutations(customers: CustomerGraphQlMutations)
+  case class Subscriptions(customers: CustomerGraphQlSubscriptions)
 
   private val queries = Queries(CustomerGraphQlQueries(baseUrl))
   private val mutations = Mutations(CustomerGraphQlMutations(baseUrl))
+//  private val subscriptions = Subscriptions(CustomerGraphQlSubscriptions())
 
   private val graphQl = graphQL(RootResolver(queries, mutations)) @@
     maxDepth(30) @@
