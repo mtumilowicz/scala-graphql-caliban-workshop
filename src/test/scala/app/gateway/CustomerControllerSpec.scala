@@ -22,17 +22,6 @@ object CustomerControllerSpec extends DefaultRunnableSpec {
 
   override def spec =
     suite("CustomerService")(
-      testM("should create new customer") {
-        val req = request[CustomerTask](Method.POST, "/")
-          .withEntity(json"""{"name": "Test"}""")
-        checkBody(app.run(req),
-            json"""{
-            "id": "1",
-            "url": "/customers/1",
-            "name": "Test",
-            "locked":false
-          }""")
-      },
       testM("should delete customer by id") {
         val setupReq =
           request[CustomerTask](Method.POST, "/")

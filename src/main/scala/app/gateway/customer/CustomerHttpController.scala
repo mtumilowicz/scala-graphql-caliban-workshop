@@ -1,8 +1,6 @@
 package app.gateway.customer
 
 import app.domain.customer._
-import app.gateway.customer.in.NewCustomerApiInput
-import app.gateway.customer.out.CustomerApiOutput
 import app.infrastructure.config.customer.CustomerServiceProxy
 import io.circe.{Decoder, Encoder}
 import org.http4s._
@@ -29,20 +27,6 @@ case class CustomerHttpController[R <: CustomerServiceEnv](baseUrl: String) {
       jsonEncoderOf[CustomerTask, A]
 
     HttpRoutes.of[CustomerTask] {
-      case GET -> Root / UUIDVar(id) =>
-        for {
-          customer <- CustomerServiceProxy.getById(CustomerId(id.toString))
-          response <- customer.fold(NotFound())(x => Ok(CustomerApiOutput(rootUri, x)))
-        } yield response
-
-      case req@POST -> Root =>
-        req.decode[NewCustomerApiInput] { input =>
-          CustomerServiceProxy
-            .create(input.toDomain)
-            .map(CustomerApiOutput(rootUri, _))
-            .flatMap(Created(_))
-        }
-
       case DELETE -> Root / id =>
         CustomerServiceProxy.delete(CustomerId(id))
           .flatMap(_.fold(NotFound())(_ => Ok(id)))

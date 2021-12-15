@@ -15,7 +15,7 @@ object Test extends DefaultRunnableSpec  {
 
   override def spec =
     suite("CustomerService")(
-      testM("should create new customer") {
+      testM("should query new customer") {
         val actual: ZIO[GraphQlEnv, Throwable, String] = for {
           _ <- CustomerServiceProxy.create(NewCustomerCommand("MTU", true))
           interpreter <- GraphQlController("").interpreter
@@ -43,6 +43,34 @@ object Test extends DefaultRunnableSpec  {
                     }
                   }
                 }"""))
-      }.provideSomeLayer[ZEnv](layer)
-    )
+      },
+      testM("should create new customer") {
+        val actual: ZIO[GraphQlEnv, Throwable, String] = for {
+          interpreter <- GraphQlController("").interpreter
+          result <- interpreter
+            .execute(
+              """
+                |mutation a {
+                |	customers {
+                |		create(name: "MTU test") {
+                |			id
+                |     name
+                |		}
+                |	}
+                |}
+                |""".stripMargin)
+        } yield result.data.toString
+
+        assertM(actual.map(parser.parse(_).getOrElse(Json.Null)))(equalTo(
+          json"""
+                {
+                  "customers": {
+                    "create": {
+                      "id": "1",
+                      "name": "MTU test"
+                    }
+                  }
+                }"""))
+      }
+    ).provideSomeLayer[ZEnv](layer)
 }
