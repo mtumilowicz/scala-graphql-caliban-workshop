@@ -5,7 +5,7 @@ import app.gateway.customer.out.CustomerApiOutput
 import app.infrastructure.config.customer.CustomerServiceProxy
 import zio.stream.ZStream
 
-case class CustomerGraphQlSubscriptions private(getAll: ZStream[CustomerServiceEnv, Throwable, CustomerApiOutput])
+case class CustomerGraphQlSubscriptions(getAll: ZStream[CustomerServiceEnv, Throwable, CustomerApiOutput])
 
 object CustomerGraphQlSubscriptions {
 

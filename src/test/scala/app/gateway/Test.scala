@@ -3,11 +3,11 @@ package app.gateway
 import app.domain.customer.{Customer, CustomerId, NewCustomerCommand}
 import app.infrastructure.config.DependencyConfig
 import app.infrastructure.config.customer.CustomerServiceProxy
-import io.circe.{Json, parser}
 import io.circe.literal.JsonStringContext
+import io.circe.{Json, parser}
+import zio.ZIO
 import zio.test.Assertion.{equalTo, isNone, isSome}
 import zio.test.{DefaultRunnableSpec, assertM}
-import zio.{ZEnv, ZIO}
 
 object Test extends DefaultRunnableSpec  {
 
@@ -132,5 +132,5 @@ object Test extends DefaultRunnableSpec  {
         assertM(result.flatMap(_ => CustomerServiceProxy.getById(CustomerId("1"))))(isNone)
       }
 
-    ).provideSomeLayer[ZEnv](layer)
+    ).provideSomeLayer(layer)
 }

@@ -19,10 +19,8 @@ case class GraphQlController(baseUrl: String) extends GenericSchema[GraphQlEnv] 
   private val queries = Queries(CustomerGraphQlQueries(baseUrl))
   private val mutations = Mutations(CustomerGraphQlMutations(baseUrl))
   private val subscriptions = Subscriptions(CustomerGraphQlSubscriptions(baseUrl))
-  println(subscriptions) // for compilation
 
-  private val graphQl = graphQL(RootResolver(queries, mutations)) @@
-//  private val graphQl = graphQL(RootResolver(queries, mutations,subscriptions)) @@
+  private val graphQl = graphQL(RootResolver(queries, mutations,subscriptions)) @@
     maxDepth(30) @@
     maxFields(200) @@
     timeout(10 seconds) @@

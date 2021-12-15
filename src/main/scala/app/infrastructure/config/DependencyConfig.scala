@@ -2,10 +2,12 @@ package app.infrastructure.config
 
 import app.domain._
 import app.domain.customer._
+import app.gateway.GraphQlEnv
 import app.infrastructure.config.customer.CustomerConfig
 import app.infrastructure.config.http.HttpConfig
 import app.infrastructure.config.id.IdConfig
 import zio.blocking.Blocking
+import zio.clock.Clock
 import zio.console.Console
 import zio.logging.Logging
 import zio.logging.slf4j.Slf4jLogger
@@ -61,7 +63,7 @@ object DependencyConfig {
     private val internalRepository: URLayer[Any, IdProviderEnv] = IdConfig.deterministicRepository
     private val internalService: URLayer[IdProviderEnv, IdServiceEnv] = IdConfig.service
     private val apiRepository: URLayer[Any, CustomerRepositoryEnv] = CustomerConfig.inMemoryRepository
-    private val apiService: URLayer[CustomerRepositoryEnv with IdServiceEnv, CustomerServiceEnv] = CustomerConfig.service
-    val appLayer = internalRepository >>> internalService ++ apiRepository >>> apiService
+    private val apiService: URLayer[CustomerRepositoryEnv with IdServiceEnv, ApiServiceEnv] = CustomerConfig.service
+    val appLayer: URLayer[Any, GraphQlEnv] = ((internalRepository >>> internalService) ++ apiRepository) >>> (Console.live ++ Clock.live ++ apiService)
   }
 }
