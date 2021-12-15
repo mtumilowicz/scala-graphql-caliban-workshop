@@ -1,6 +1,5 @@
 package app.gateway
 
-import app.domain.customer._
 import app.domain.customer.NewCustomerCommand
 import app.infrastructure.config.DependencyConfig
 import app.infrastructure.config.customer.CustomerServiceProxy
@@ -8,7 +7,7 @@ import io.circe.{Json, parser}
 import io.circe.literal.JsonStringContext
 import zio.test.Assertion.equalTo
 import zio.test.{DefaultRunnableSpec, assertM}
-import zio.ZIO
+import zio.{ZEnv, ZIO}
 
 object Test extends DefaultRunnableSpec  {
 
@@ -17,7 +16,7 @@ object Test extends DefaultRunnableSpec  {
   override def spec =
     suite("CustomerService")(
       testM("should create new customer") {
-        val actual: ZIO[CustomerServiceEnv, Throwable, String] = for {
+        val actual: ZIO[GraphQlEnv, Throwable, String] = for {
           _ <- CustomerServiceProxy.create(NewCustomerCommand("MTU", true))
           interpreter <- GraphQlController("").interpreter
           result <- interpreter
@@ -44,6 +43,6 @@ object Test extends DefaultRunnableSpec  {
                     }
                   }
                 }"""))
-      }.provideSomeLayer(layer)
+      }.provideSomeLayer[ZEnv](layer)
     )
 }
