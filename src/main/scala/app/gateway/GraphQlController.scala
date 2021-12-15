@@ -1,6 +1,5 @@
 package app.gateway
 
-import app.domain.ApiServiceEnv
 import app.gateway.customer.{CustomerGraphQlMutations, CustomerGraphQlQueries, CustomerGraphQlSubscriptions}
 import caliban.GraphQL.graphQL
 import caliban.schema.GenericSchema
@@ -11,7 +10,7 @@ import zio.duration.durationInt
 
 import scala.language.postfixOps
 
-case class GraphQlController(baseUrl: String) extends GenericSchema[ApiServiceEnv] {
+case class GraphQlController(baseUrl: String) extends GenericSchema[GraphQlEnv] {
 
   case class Queries(customers: CustomerGraphQlQueries)
   case class Mutations(customers: CustomerGraphQlMutations)
@@ -19,9 +18,11 @@ case class GraphQlController(baseUrl: String) extends GenericSchema[ApiServiceEn
 
   private val queries = Queries(CustomerGraphQlQueries(baseUrl))
   private val mutations = Mutations(CustomerGraphQlMutations(baseUrl))
-//  private val subscriptions = Subscriptions(CustomerGraphQlSubscriptions())
+  private val subscriptions = Subscriptions(CustomerGraphQlSubscriptions(baseUrl))
+  println(subscriptions) // for compilation
 
   private val graphQl = graphQL(RootResolver(queries, mutations)) @@
+//  private val graphQl = graphQL(RootResolver(queries, mutations,subscriptions)) @@
     maxDepth(30) @@
     maxFields(200) @@
     timeout(10 seconds) @@

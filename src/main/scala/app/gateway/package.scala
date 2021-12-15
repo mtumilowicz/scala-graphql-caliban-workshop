@@ -1,11 +1,11 @@
 package app
 
-import app.domain.customer.CustomerServiceEnv
+import app.infrastructure.config.DependencyConfig.AppEnv
 import zio.clock.Clock
 import zio.console.Console
 
 package object gateway {
 
-  type GraphQlEnv = Console with Clock with CustomerServiceEnv
+  type GraphQlEnv = Console with Clock with AppEnv
 
 }
