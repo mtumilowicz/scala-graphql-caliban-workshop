@@ -1,7 +1,6 @@
 package app
 
 import app.gateway.GraphQlController
-import app.gateway.customer.CustomerHttpController
 import app.infrastructure.config.DependencyConfig.AppEnv
 import app.infrastructure.config._
 import caliban.Http4sAdapter
@@ -14,7 +13,6 @@ import zio.clock.Clock
 import zio.interop.catz._
 import zio.{ExitCode => ZExitCode, _}
 
-
 object Main extends App {
   type AppTask[A] = RIO[DependencyConfig.AppEnv with Clock, A]
 
@@ -26,7 +24,6 @@ object Main extends App {
         baseUrl = cfg.http.baseUrl
         interpreter <- GraphQlController(baseUrl).interpreter
         httpApp = Router[AppTask](
-          "/customers" -> CustomerHttpController(baseUrl).routes,
            "/graphql" -> CORS.policy(Http4sAdapter.makeHttpService(interpreter))
         ).orNotFound
         _ <- runHttp(httpApp, cfg.http.port)

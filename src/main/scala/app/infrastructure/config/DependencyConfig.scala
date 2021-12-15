@@ -42,7 +42,7 @@ object DependencyConfig {
       HttpConfig.fromAppConfig ++ ZLayer.identity
 
     val internalRepository: ZLayer[Gateway, Throwable, InternalRepository] =
-      IdConfig.uuidRepository ++ ZLayer.identity
+      IdConfig.deterministicRepository ++ ZLayer.identity
 
     val internalService: ZLayer[InternalRepository, Throwable, InternalService] =
       IdConfig.service ++ ZLayer.identity

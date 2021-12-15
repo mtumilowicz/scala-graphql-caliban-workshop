@@ -10,9 +10,8 @@ case class CustomerService(idService: IdService, repository: CustomerRepository)
   def getById(id: CustomerId): UIO[Option[Customer]] =
     repository.getById(id)
 
-  def delete(id: CustomerId): UIO[Option[CustomerId]] =
-    repository.getById(id)
-      .flatMap(_ => repository.delete(id))
+  def delete(id: CustomerId): Task[CustomerId] =
+    repository.delete(id)
 
   def deleteAll: UIO[Unit] =
     repository.deleteAll
