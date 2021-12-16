@@ -3,8 +3,6 @@ package app
 import app.gateway.GraphQlController
 import app.infrastructure.config._
 import caliban.Http4sAdapter
-import cats.data.Kleisli
-import org.http4s.StaticFile
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Router
 import org.http4s.server.middleware.CORS
@@ -28,7 +26,6 @@ object Main extends App {
             Router[AppTask](
               "/api/graphql" -> CORS.policy(Http4sAdapter.makeHttpService(interpreter)),
               "/ws/graphql"  -> CORS.policy(Http4sAdapter.makeWebSocketService(wsBuilder, interpreter)),
-              "/graphiql"    -> Kleisli.liftF(StaticFile.fromResource("/graphiql.html", None))
             ).orNotFound
           )
           .serve
