@@ -23,6 +23,9 @@
     * https://medium.com/@ghostdogpr/graphql-in-scala-with-caliban-part-2-c7762110c0f9
     * https://medium.com/@ghostdogpr/graphql-in-scala-with-caliban-part-3-8962a02d5d64
 
+
+* task: implement get all with limit
+
 * graphQl is a new API standard that provides a more efficient, powerful and flexible alternative
 to REST
 * rest vs grapql
