@@ -22,30 +22,76 @@
     * https://medium.com/@ghostdogpr/graphql-in-scala-with-caliban-part-1-8ceb6099c3c2
     * https://medium.com/@ghostdogpr/graphql-in-scala-with-caliban-part-2-c7762110c0f9
     * https://medium.com/@ghostdogpr/graphql-in-scala-with-caliban-part-3-8962a02d5d64
+    * https://www.peerislands.io/how-to-use-graphql-to-build-bffs/
 
+## preface
+* goals of this workshops
+    * introduction into GraphQL
+        * motivation
+        * schema
+        * query, mutation, subscription
+        * data loaders
+* workshop plan
+    * task1: implement query for returning all customers (with a size limit)
+    * task2: implement subscription for deleted customers
 
-* task: implement get all with limit
-* task: implement subsription for deleted customers
-
+## introduction
 * graphQl is a new API standard that provides a more efficient, powerful and flexible alternative
 to REST
+    * Graph Query Language
 * rest vs grapql
     * multiple endpoints -> a single enpoint (/graphql)
     * same set of fields -> fields you ask for
-* graphQl schema tells you what fields you can request from the API
-* you write a graphQl query describing the data fields you want
-* BFF - backend for frontend API
-* different clients need  different sets of data
-* shared API becomes a bottleneck when rolling out new features
-* suppose we have different client with different needs (different types of data)
-    * Web, Iphone, Android, Tv
-* Graph Query Language
 * main concepts
     * one endpoint for all operations
     * always define in request what you expect in response (what you need)
     * three types of operations: queries, mutations, subscriptions
         * subscription - request and stream of responses
     * defined by schema
+* graphQl schema tells you what fields you can request from the API
+* you write a graphQl query describing the data fields you want
+* BFF - backend for frontend API
+    * different clients need  different sets of data
+    * suppose we have different client with different needs (different types of data)
+        * Web, Iphone, Android, Tv
+
+    When you consider an e-commerce shopping application, there are a number of microservices, and the communication between frontend and backend will be particularly chatty resulting in several network calls. A better solution would be a backend service that provides only the information required for my application. This is where the Backend-For-Frontend (BFF) pattern helps.
+
+    For example PayPal redesigned their checkout process to optimize their checkout times and eliminate unnecessary roundtrips.
+
+    Instead of the frontend application aggregating data by calling and processing information from multiple data sources and APIs, we create a BFF layer. This layer does the following:
+
+    Receive request from the client application
+    Call multiple backend services as required to get the required data
+    Format the response with just the information required by the client
+    Respond with the formatted data to the client application
+    This design approach helps:
+
+    Simplify the frontend logic
+    Avoid over-fetching or under-fetching
+    Reduce the number of network calls that the client has to make, to render a page
+* even if error you get 200 OK
+    * dlaczego? bo graphql nie jest ściśle związany z http
+* GraphQL Pros
+    * nice alternative to REST
+    * it can be used together with REST
+    * get exactly what you want get
+    * good for API with different clients
+    * easy testing
+    * nice tooling
+* GraphQL cons
+    * hard to return simple Map
+    * performance overhead
+    * a lot of similar code to write
+    * caching
+        * network - unsuitable as there is a common URL for all ops
+    * authorization / authentication
+        * graphql zwraca też częściowo poprawne dane, np pytasz o imię customera i jego zamówienia
+        do zamówienień nie masz uprawnień, więc dostaniesz imię i komunikat, że do zamówień nie ma uprawnień
+            * sam decydujesz jak robisz autentykację
+    * no operation idempotency
+## schema
+* something like swagger: graphql/graphiql
 * example
     * request
         ```
@@ -89,8 +135,10 @@ to REST
             NEW, CANCELED, DONE
         }
         ```
-* even if error you get 200 OK
-    * dlaczego? bo graphql nie jest ściśle związany z http
+
+## query
+
+## mutation
 * mutation for updates
     ```
     mutation {
@@ -119,15 +167,10 @@ to REST
         createCustomer(input: CreateCustomerInput): CreateCustomerPayload!
     }
     ```
-* pagination
-    * before, after, offset, limit
-* filtering
-    ```
-  filter { or: [{ ... }] }, name: "Bob }
-  ```
-* sorting
-    * orderBy: ASC, DESC
-    * sort: NEWEST, IMPORTANCE
+
+## subscription
+
+## data loaders
 * n+1 problem
     ```
     {
@@ -142,25 +185,10 @@ to REST
     }
     ```
     * solution: add async BatchLoader (java dataloader, scala ZQuery)
-* something like swagger: graphql/graphiql
-* GraphQL Pros
-    * nice alternative to REST
-    * it can be used together with REST
-    * get exactly what you want get
-    * good for API with different clients
-    * easy testing
-    * nice tooling
-* GraphQL cons
-    * hard to return simple Map
-    * performance overhead
-    * a lot of similar code to write
-    * caching
-        * network - unsuitable as there is a common URL for all ops
-    * authorization / authentication
-        * graphql zwraca też częściowo poprawne dane, np pytasz o imię customera i jego zamówienia
-        do zamówienień nie masz uprawnień, więc dostaniesz imię i komunikat, że do zamówień nie ma uprawnień
-            * sam decydujesz jak robisz autentykację
-    * no operation idempotency
+
+## pagination
+
+
 * 5 key characteristics
     1. hierarchical
         * queries as hierarchies of data definitions, shaped
