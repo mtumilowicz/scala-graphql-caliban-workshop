@@ -25,6 +25,7 @@
 
 
 * task: implement get all with limit
+* task: implement subsription for deleted customers
 
 * graphQl is a new API standard that provides a more efficient, powerful and flexible alternative
 to REST
