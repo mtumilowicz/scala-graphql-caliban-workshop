@@ -1,11 +1,12 @@
 package app.domain.customer
 
+import zio.stream.UStream
 import zio.{Task, UIO}
 
 case class CustomerService(idService: IdService, repository: CustomerRepository) {
 
-  def getAll: fs2.Stream[Task, Customer] =
-    repository.getAll
+  def createdCustomers: UStream[Customer] =
+    repository.createdCustomers
 
   def getById(id: CustomerId): UIO[Option[Customer]] =
     repository.getById(id)

@@ -19,11 +19,11 @@ case class GraphQlController(baseUrl: String) extends GenericSchema[GraphQlEnv] 
   case class Mutations(customers: CustomerGraphQlMutations)
   // https://ghostdogpr.github.io/caliban/docs/#subscriptions
   // All the fields of the subscription root case class MUST return ZStream or ? => ZStream objects
-  case class Subscriptions(getAllCustomers: ZStream[CustomerServiceEnv, Throwable, CustomerApiOutput])
+  case class Subscriptions(createdCustomers: ZStream[CustomerServiceEnv, Throwable, CustomerApiOutput])
 
   private val queries = Queries(CustomerGraphQlQueries(baseUrl))
   private val mutations = Mutations(CustomerGraphQlMutations(baseUrl))
-  private val subscriptions = Subscriptions(CustomerGraphQlSubscriptions(baseUrl).getAll)
+  private val subscriptions = Subscriptions(CustomerGraphQlSubscriptions(baseUrl).createdCustomers)
 
   private val graphQl = graphQL(RootResolver(queries, mutations,subscriptions)) @@
     maxDepth(30) @@

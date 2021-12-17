@@ -1,10 +1,11 @@
 package app.domain.customer
 
+import zio.stream.UStream
 import zio.{Task, UIO}
 
 trait CustomerRepository extends Serializable {
 
-  def getAll: fs2.Stream[Task, Customer]
+  def createdCustomers: UStream[Customer]
 
   def getById(id: CustomerId): UIO[Option[Customer]]
 

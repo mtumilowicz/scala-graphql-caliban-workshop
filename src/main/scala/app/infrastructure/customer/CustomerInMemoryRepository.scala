@@ -2,13 +2,13 @@ package app.infrastructure.customer
 
 import app.domain.customer._
 import zio._
+import zio.stream.{UStream, ZStream}
 
-final private class CustomerInMemoryRepository(ref: Ref[Map[CustomerId, Customer]])
+final private class CustomerInMemoryRepository(ref: Ref[Map[CustomerId, Customer]], subscribers: Hub[Customer])
   extends CustomerRepository {
 
-  override def getAll: fs2.Stream[Task, Customer] =
-    fs2.Stream.eval(ref.get.map(_.values.toList))
-      .flatMap(fs2.Stream.emits(_))
+  override def createdCustomers: UStream[Customer] =
+    ZStream.unwrapManaged(subscribers.subscribe.map(ZStream.fromQueue(_)))
 
   override def delete(id: CustomerId): Task[CustomerId] = {
     ref.update(store => store - id)
@@ -24,6 +24,7 @@ final private class CustomerInMemoryRepository(ref: Ref[Map[CustomerId, Customer
   override def create(customer: Customer): UIO[Customer] =
     for {
       _ <- ref.update(store => store + (customer.id -> customer))
+      _ <- subscribers.publish(customer)
     } yield customer
 }
 
@@ -33,6 +34,7 @@ object CustomerInMemoryRepository {
     ZLayer.fromEffect {
       for {
         ref <- Ref.make(Map.empty[CustomerId, Customer])
-      } yield new CustomerInMemoryRepository(ref)
+        subscribers <- Hub.unbounded[Customer]
+      } yield new CustomerInMemoryRepository(ref, subscribers)
     }
 }
