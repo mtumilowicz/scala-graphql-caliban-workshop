@@ -34,6 +34,7 @@
 * workshop plan
     * task1: implement query for returning all customers (with a size limit)
     * task2: implement subscription for deleted customers
+    * task3: implement getting orders in batch
 
 ## introduction
 * graphQl is a new API standard that provides a more efficient, powerful and flexible alternative
