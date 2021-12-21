@@ -1,8 +1,9 @@
 package app.domain.customer
 
-import app.domain.order.OrderId
+import app.domain.order.CustomerDetails
+
 
 case class NewCustomerCommand(name: String, locked: Boolean) {
   def toCustomer(id: CustomerId): Customer =
-    Customer(id = id, name = name, orders = List(OrderId("1")) ,locked = locked)
+    Customer(id = id, name = name, details = CustomerDetails(id, true) ,locked = locked)
 }
