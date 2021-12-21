@@ -1,6 +1,7 @@
 package app.domain.customer
 
 import app.domain.customerdetails.CustomerDetailsService
+import app.domain.id.IdService
 import zio.stream.UStream
 import zio.{Task, UIO}
 

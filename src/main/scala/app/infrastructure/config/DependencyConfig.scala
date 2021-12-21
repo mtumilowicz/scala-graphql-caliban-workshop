@@ -1,8 +1,6 @@
 package app.infrastructure.config
 
 import app.domain._
-import app.domain.customer._
-import app.domain.customerdetails.CustomerDetailsServiceEnv
 import app.gateway.GraphQlEnv
 import app.infrastructure.config.customer.CustomerConfig
 import app.infrastructure.config.customerdetails.CustomerDetailsConfig
@@ -64,8 +62,8 @@ object DependencyConfig {
   object inMemory {
     private val internalRepository: URLayer[Any, InternalRepositoryEnv] = IdConfig.deterministicRepository ++ CustomerDetailsConfig.inMemoryRepository
     private val internalService: URLayer[InternalRepositoryEnv, InternalServiceEnv] = IdConfig.service ++ CustomerDetailsConfig.service
-    private val apiRepository: URLayer[Any, CustomerRepositoryEnv] = CustomerConfig.inMemoryRepository
-    private val apiService: URLayer[CustomerRepositoryEnv with IdServiceEnv with CustomerDetailsServiceEnv, ApiServiceEnv] = CustomerConfig.service
+    private val apiRepository: URLayer[Any, ApiRepositoryEnv] = CustomerConfig.inMemoryRepository
+    private val apiService: URLayer[InternalServiceEnv with ApiRepositoryEnv, ApiServiceEnv] = CustomerConfig.service
     val appLayer: URLayer[Any, GraphQlEnv] = ((internalRepository >>> internalService) ++ apiRepository) >>> (Console.live ++ Clock.live ++ apiService)
   }
 }
