@@ -29,7 +29,8 @@ case class GraphQlController(baseUrl: String) extends GenericSchema[GraphQlEnv] 
     maxDepth(30) @@
     maxFields(200) @@
     timeout(10 seconds) @@
-    printSlowQueries(5 seconds)
+    printSlowQueries(5 seconds) @@
+    printErrors
 
   val interpreter: IO[CalibanError.ValidationError, GraphQLInterpreter[GraphQlEnv, CalibanError]] =
     graphQl.interpreter

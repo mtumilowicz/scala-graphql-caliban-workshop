@@ -1,7 +1,7 @@
 package app.gateway
 
 import app.domain.customer.{CustomerId, NewCustomerCommand}
-import app.domain.order.CustomerDetails
+import app.domain.customerdetails
 import app.infrastructure.config.DependencyConfig
 import app.infrastructure.config.customer.CustomerServiceProxy
 import io.circe.literal.JsonStringContext
@@ -94,7 +94,7 @@ object Test extends DefaultRunnableSpec  {
           _ <- result
           customerMaybe <- CustomerServiceProxy.getById(CustomerId("1"))
           customer = customerMaybe.get
-          detailsCheck <- assertM(customer.details.run)(equalTo(CustomerDetails(CustomerId("1"), true)))
+          detailsCheck <- assertM(customer.details.run)(isSome(equalTo(customerdetails.CustomerDetails(CustomerId("1"), true))))
         } yield assert(customer.name)(equalTo("MTU test")) &&
           assert(customer.id)(equalTo(CustomerId("1"))) &&
           assert(customer.locked)(isFalse) &&

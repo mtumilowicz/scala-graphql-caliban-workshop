@@ -1,10 +1,10 @@
 package app.domain.customer
 
-import app.domain.order._
+import app.domain.customerdetails.CustomerDetails
 import zio.query.UQuery
 
 case class Customer(id: CustomerId, name: String, locked: Boolean) {
-  def toView(details: UQuery[CustomerDetails]): CustomerView = {
+  def toView(details: UQuery[Option[CustomerDetails]]): CustomerView = {
     CustomerView(id = id, name = name, details = details, locked = locked)
   }
 }
