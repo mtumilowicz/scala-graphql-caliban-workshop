@@ -9,7 +9,7 @@ case class CustomerService(idService: IdService, repository: CustomerRepository)
     repository.createdCustomers
 
   def getById(id: CustomerId): UIO[Option[CustomerView]] =
-    repository.getById(id).map(_.map(_.toView()))
+    repository.getById(id).map(_.map(_.toView))
 
   def delete(id: CustomerId): Task[CustomerId] =
     repository.delete(id)
