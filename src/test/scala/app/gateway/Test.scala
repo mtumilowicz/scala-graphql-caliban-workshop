@@ -1,6 +1,7 @@
 package app.gateway
 
-import app.domain.customer.{Customer, CustomerId, NewCustomerCommand}
+import app.domain.customer.{CustomerId, CustomerView, NewCustomerCommand}
+import app.domain.order.{Order, OrderId}
 import app.infrastructure.config.DependencyConfig
 import app.infrastructure.config.customer.CustomerServiceProxy
 import io.circe.literal.JsonStringContext
@@ -89,7 +90,7 @@ object Test extends DefaultRunnableSpec  {
                 |""".stripMargin)
         } yield ()
 
-        assertM(result.flatMap(_ => CustomerServiceProxy.getById(CustomerId("1"))))(isSome(equalTo(Customer(CustomerId("1"), "MTU test", false))))
+        assertM(result.flatMap(_ => CustomerServiceProxy.getById(CustomerId("1"))))(isSome(equalTo(CustomerView(CustomerId("1"), "MTU test", List(Order(OrderId("1"), true)), false))))
       },
       testM("should delete new customer") {
         val actual: ZIO[GraphQlEnv, Throwable, String] = for {

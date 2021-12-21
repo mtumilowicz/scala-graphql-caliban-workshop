@@ -8,8 +8,8 @@ case class CustomerService(idService: IdService, repository: CustomerRepository)
   def createdCustomers: UStream[Customer] =
     repository.createdCustomers
 
-  def getById(id: CustomerId): UIO[Option[Customer]] =
-    repository.getById(id)
+  def getById(id: CustomerId): UIO[Option[CustomerView]] =
+    repository.getById(id).map(_.map(_.toView()))
 
   def delete(id: CustomerId): Task[CustomerId] =
     repository.delete(id)

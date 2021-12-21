@@ -12,6 +12,6 @@ object CustomerGraphQlQueries {
   def apply(baseUrl: String): CustomerGraphQlQueries = {
     val rootUri = s"$baseUrl/customers"
 
-    CustomerGraphQlQueries(id => CustomerServiceProxy.getById(id).map(_.map(CustomerApiOutput(rootUri, _))))
+    CustomerGraphQlQueries(id => CustomerServiceProxy.getById(id).map(_.map(CustomerApiOutput.fromDomain(rootUri, _))))
   }
 }
