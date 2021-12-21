@@ -15,6 +15,10 @@ case class CustomerService(idService: IdService,
     repository.getById(id).map(_.map(_.toView(customerDetailsService.getById(id))))
   }
 
+  def getByIdWithoutDetails(id: CustomerId): UIO[Option[CustomerView]] = {
+    repository.getById(id).map(_.map(_.toView()))
+  }
+
   def delete(id: CustomerId): Task[CustomerId] =
     repository.delete(id)
 
