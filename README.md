@@ -23,6 +23,7 @@
     * https://medium.com/@ghostdogpr/graphql-in-scala-with-caliban-part-2-c7762110c0f9
     * https://medium.com/@ghostdogpr/graphql-in-scala-with-caliban-part-3-8962a02d5d64
     * https://www.peerislands.io/how-to-use-graphql-to-build-bffs/
+    * https://graphql.org/
 
 ## preface
 * goals of this workshops
@@ -95,135 +96,55 @@ to REST
     * n+1 problem
         * solution: data loader
     * caching is no longer simple
+        * network layer - unsuitable as there is a common URL for all ops
         * solution: granularity (per field)
+    * hard to return simple Map
 * 5 key characteristics
     1. hierarchical: queries as hierarchies of data definitions
     1. view-centric: by design built to satisfy frontend application requirements
     1. strongly-typed: typed context (schema) + queries are executed within this context
     1. introspective: type system (schema) itself is queryable
     1. version-free: tools for the continuous evolution
-* main concepts
-    * one endpoint for all operations
-    * always define in request what you expect in response (what you need)
-    * three types of operations: queries, mutations, subscriptions
-        * subscription - request and stream of responses
-    * defined by schema
+* three types of operations
+    * queries
+    * mutations
+    * subscriptions
+        * stream of responses
 * BFF - backend for frontend API
     * different clients need  different sets of data
-    * suppose we have different client with different needs (different types of data)
         * Web, Iphone, Android, Tv
+    * instead of the frontend application aggregating data by calling and processing information from multiple
+    data sources and APIs, we create a BFF layer
+        * This layer does the following:
+            * Receive request from the client application
+            * Call multiple backend services as required to get the required data
+            * Format the response with just the information required by the client
+            * Respond with the formatted data to the client application
+    * pros
+        * Simplify the frontend logic
+        * Avoid over-fetching or under-fetching
+        * Reduce the number of network calls that the client has to make, to render a page
 
-    When you consider an e-commerce shopping application, there are a number of microservices, and the communication between frontend and backend will be particularly chatty resulting in several network calls. A better solution would be a backend service that provides only the information required for my application. This is where the Backend-For-Frontend (BFF) pattern helps.
-
-    For example PayPal redesigned their checkout process to optimize their checkout times and eliminate unnecessary roundtrips.
-
-    Instead of the frontend application aggregating data by calling and processing information from multiple data sources and APIs, we create a BFF layer. This layer does the following:
-
-    Receive request from the client application
-    Call multiple backend services as required to get the required data
-    Format the response with just the information required by the client
-    Respond with the formatted data to the client application
-    This design approach helps:
-
-    Simplify the frontend logic
-    Avoid over-fetching or under-fetching
-    Reduce the number of network calls that the client has to make, to render a page
-* even if error you get 200 OK
-    * dlaczego? bo graphql nie jest ściśle związany z http
-* GraphQL Pros
-    * nice alternative to REST
-    * it can be used together with REST
-    * get exactly what you want get
-    * good for API with different clients
-    * easy testing
-    * nice tooling
-* GraphQL cons
-    * hard to return simple Map
-    * performance overhead
-    * a lot of similar code to write
-    * caching
-        * network - unsuitable as there is a common URL for all ops
-    * authorization / authentication
-        * graphql zwraca też częściowo poprawne dane, np pytasz o imię customera i jego zamówienia
-        do zamówienień nie masz uprawnień, więc dostaniesz imię i komunikat, że do zamówień nie ma uprawnień
-            * sam decydujesz jak robisz autentykację
-    * no operation idempotency
 ## schema
-  * type Query {
-    taskMainList: [Task!]
-}
-  * The square brackets modify the type
-    to indicate that this field is a list of objects from the Task model
-  * The exclamation mark after the Task type
-    inside the square brackets indicates that all items in this array should have a value and
-    that they cannot be null.
-      * A general good practice in GraphQL schemas is to make the types of fields non-null,
-        unless you have a reason to distinguish between null and empty
-        * This is why I made the taskMainList nullable, and it’s why I will make all root fields
-          nullable. The semantic meaning of this nullability is, in this case, “Something went
-          wrong in the resolver of this root field, and we’re allowing it so that a response can
-          still have partial data for other root fields.”
-            * It’s a
-              good idea to represent errors caused by invalid uses of mutations differently from
-              other root errors a GraphQL API consumer can cause.
-              * For example, trying to request
-                a nonexistent field is a root error. However, trying to create a user with a username
-                that’s already in the system is a user error that we should handle differently.
-
-
-  * To create a GraphQL API, you need a typed schema. A GraphQL schema contains
-    fields that have types. Those types can be primitive or custom. Everything in the
-    GraphQL schema requires a type.
+* something like swagger: graphql/graphiql
+    * https://api.spacex.land/graphql/
+* example
+    ```
+    type Starship {
+      id: ID!
+      name: String! // non nullable
+      appearsIn: [Episode!]! // list of objects
+      length(unit: LengthUnit = METER): Float // argument
+    }
+    ```
+* list of objects: `[]`
+* good practices
+    * usually make the types of fields non-null
+    * however, make all root fields nullable
+        * in this case, nullability means that something went wrong but we’re allowing it to show other fields
 * scalar
     * fields don't have any sub-fields
     * predefined: ID, Boolean, Int, String
-    * we could define: `scalar Date`
-        * backend have to recognize it, so `scalar Datexxx` will not be recognized by backend
-
-* something like swagger: graphql/graphiql
-* example
-    * request
-        ```
-        {
-            customer(id: "2") {
-                id
-                # this description will be showed in GraphQl 'swagger'
-                name @include(if:false) // conditional logic
-                aliasForEmail:email // fields could be aliased
-            }
-        }
-        ```
-    * response
-        ```
-        {
-            "data": {
-                "customer": {
-                    "id": "2",
-                    "name": "name",
-                    "aliasForEmail": "a@b.com"
-                }
-            }
-        }
-        ```
-    * types
-        ```
-        type Customer { // should be java class with same fields
-            // fields with ! are required
-            id: ID!
-            name: String!
-            email: String!
-        }
-        ```
-        ```
-        type Query { // should be java class with mapping methods - customer(id) returns service.findById(id)
-            customer(id: String!): Customer!
-        }
-        ```
-        ```
-        type Status {
-            NEW, CANCELED, DONE
-        }
-        ```
 
 ## operations
 * All GraphQL operations must specify their selections down to fields that return
