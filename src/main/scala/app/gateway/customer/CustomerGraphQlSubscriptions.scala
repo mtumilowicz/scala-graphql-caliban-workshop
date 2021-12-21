@@ -12,7 +12,7 @@ object CustomerGraphQlSubscriptions {
   def apply(baseUrl: String): CustomerGraphQlSubscriptions = {
     val rootUri = s"$baseUrl/customers"
 
-    CustomerGraphQlSubscriptions(CustomerServiceProxy.createdCustomers.map(CustomerApiOutput(rootUri, _)))
+    CustomerGraphQlSubscriptions(CustomerServiceProxy.createdCustomers.map(CustomerApiOutput.fromDomain(rootUri, _)))
   }
 }
 

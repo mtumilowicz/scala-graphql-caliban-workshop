@@ -15,7 +15,7 @@ object CustomerGraphQlMutations {
     val rootUri = s"$baseUrl/customers"
 
     CustomerGraphQlMutations(
-      input => CustomerServiceProxy.create(input.toDomain).map(CustomerApiOutput(rootUri, _)),
+      input => CustomerServiceProxy.create(input.toDomain).map(CustomerApiOutput.fromDomain(rootUri, _)),
       id => CustomerServiceProxy.delete(id)
     )
   }
