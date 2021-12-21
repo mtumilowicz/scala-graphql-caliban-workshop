@@ -37,139 +37,77 @@
     * task3: implement getting orders in batch
 
 ## introduction
-  * To solve the multiple round-trip problem, GraphQL makes the responding server
-    work as a single endpoint.
-  * Basically, GraphQL takes the custom endpoint idea to an
-    extreme and makes the whole server a single smart endpoint that can reply to all data
-    requests.
-* It basically
-  decouples clients from servers and allows both of them to evolve and scale inde-
-  pendently. This enables faster iteration in both frontend and backend products.
-* One of the most significant—and perhaps most popular—technological reasons to
-  consider a GraphQL layer between clients and servers is efficiency.
-  * API clients often need
-    to ask the server about multiple resources, and the API server usually knows how to
-    answer questions about a single resource.
-  * As a result, the client ends up having to com-
-    municate with the server multiple times to gather all the data it needs
-* Another big technological benefit of GraphQL is communicating with multiple
-  services
-  * When you have multiple clients requesting data from multiple data storage
-    services (like PostgreSQL, MongoDB, and a Redis cache), a GraphQL layer in the
-    middle can simplify and standardize this communication
-  * Instead of a client going
-    directly to multiple data services, you can have that client communicate with the
-    GraphQL service
-  * Then the GraphQL service communicates with the different data
-    services
-* The biggest relevant problem with REST APIs is the client’s need to communicate
-  with multiple data API endpoints
-    * rest has a problem of overfetching (to many fields) and underfetching
-    (often 2 or more calls to get data you need)
-  * REST APIs are an example of servers that require
-    clients to do multiple network round trips to get data.
-  * A REST API is a collection of
-    endpoints where each endpoint represents a resource. So, when a client needs data
-    about multiple resources, it has to perform multiple network requests to that REST
-    API and then put together the data by combining the multiple responses it receives.
-  * In a pure REST API (not a customized one), a client cannot specify which fields to
-    select for a record in that resource.
-  * One other big problem with REST APIs is versioning. If you need to support multi-
-    ple versions, that usually means new endpoints.
-        * best practices are clear: versioning should be avoided and tools are provided
-        for continuous evolution
-          * Versioning can be
-            avoided altogether. Basically, you can add new fields and types without removing the
-            old ones because you have a graph and can flexibly grow it by adding more nodes.
-
-          * Clients can continue to use older features, and
-            they can also incrementally update their code to use new features.
-          * This is especially important for mobile clients because you cannot control the ver-
-            sion of the API they are using.
-          * GraphQL offers a way to deprecate (and hide)
-            older nodes so that consumers of the schema only see the new ones.
-  * REST APIs eventually turn into a mix of regular REST endpoints plus custom ad hoc
-    endpoints crafted for performance reasons.
-* A GraphQL service can be written in any programming language, and it can be
-  conceptually split into two major parts, structure and behavior:
-  * The structure is defined with a strongly typed schema. A GraphQL schema is like
-    a catalog of all the operations a GraphQL API can handle. It simply represents
-    the capabilities of an API. GraphQL client applications use the schema to know
-    what questions they can ask the service. The typed nature of the schema is a core
-    concept in GraphQL. The schema is basically a graph of fields that have types;
-    this graph represents all the possible data objects that can be read (or updated)
-    through the service.
-  * The behavior is naturally implemented with functions that in the GraphQL
-    world are called resolver functions.
-    * Each field in a GraphQL schema is backed by
-      a resolver function. A resolver function defines what data to fetch for its field.
-    * A resolver function represents the instructions on how and where to access
-      raw data.
-    * For example, a resolver function might issue a SQL statement to a
-      relational database, read a file’s data directly from the operating system, or
-      update some cached data in a document database.
-* * The word graph in GraphQL comes from the fact that the best way to represent data in
-    the real world is with a graph-like data structure.
-  * If you analyze any data model, big or
-    small, you’ll always find it to be a graph of objects with many relations between them.
-  * Why think of data in terms of resources (in URLs) or tables when you can think of it
-    naturally as a graph?
-* In a nutshell, GraphQL is all about optimizing data communication between a cli-
-  ent and a server
-* At the core of GraphQL is a strong type system that is used to describe data and
-  organize APIs.
-* cons
-    * malicious queries
-        * arbitrary complex query
-            * solution: analyze AST complexity - @GraphQLComplexity
-        * arbitrary size of the result
-            * solution: limit depth - instrumentation(new MaxQueryDepthInstrumentation(10))
-        * solution: limit the execution time
-        * stream the results
-    * no streaming
-    * n+1 data loader
-    * caching is no longer simple
-        * granular (per field) - @cacheControl
-* authorization
-    * who can fetch specific fields - @auth(role: "Manager")
-    * who can see specific fields - GraphFieldVisibility
-* graphQl is specification
-* GraphQL consists of 2 subjects
-    * Schema Definition Language
-        * Schema is mandatory
-        * client can cache specification of the request and comply with it
-        * server validates request according to schema - if invalid - inform client
-    * Query Language
-* 5 key characteristics
-    1. hierarchical
-        * queries as hierarchies of data definitions, shaped
-        just how data is expected to be returned
-    1. view-centric
-        * by design built to satisfy frontend application requirements
-    1. strongly-typed
-        * a grapql servers defines a specific type system
-        * queries are executed within this context
-    1. introspective
-        * the type system itself is queryable
-        * tools are built around this capability
-        * IntrospectionQuery - dokumentacja coś w stylu swaggera, openApi
-    1. version-free
-        * grapql takes a strong option on avoiding versioning by providing
-        the tools for the continuous evolution
+* the best way to represent data in the real world is with a graph-like data structure
+    * data model is usually a graph of objects with many relations between them
+    * why think of data in terms of resources (in URLs) or tables?
+* GraphQL = Graph Query Language
 * graphQl is a new API standard that provides a more efficient, powerful and flexible alternative
 to REST
-    * Graph Query Language
-* rest vs grapql
-    * multiple endpoints -> a single enpoint (/graphql)
-    * same set of fields -> fields you ask for
+* GraphQL is a strong type system that is used to describe data and organize APIs
+* A GraphQL service can be written in any programming language, and it can be conceptually split into two major parts, structure and behavior:
+    * structure = strongly typed schema
+        * schema is basically a graph of fields that have types
+            * graph represents all the possible data objects that can be read (or updated) through the service
+        * client uses the schema to know what questions they can ask
+    * behavior = resolver functions
+        * each field in a GraphQL schema is backed by a resolver function
+        * resolver function defines what data to fetch for its field
+        * resolver function represents the instructions on how and where to access raw data
+* GraphQL takes the custom endpoint idea to an extreme
+    * the whole server a single smart endpoint
+    * solution to the multiple round-trip problem
+        * API clients ask about multiple resources, and the API server knows how to answer questions
+        about a single resource
+        * client has to communicate with the server multiple times to gather all data
+* vs REST
+    * don't need any documentation like swagger
+    * REST has a problem of overfetching (to many fields) and underfetching
+    (many calls to get data you need)
+    * REST: each endpoint represents a resource
+        * when a client needs data about multiple resources, it has to perform multiple network requests
+    * In a pure REST API (not a customized one): a client cannot specify which fields to select
+    * REST APIs big problem is versioning
+        * usually means new endpoints
+        * versioning should be avoided and tools are provided for continuous evolution
+        * basically, you can add new fields and types without removing the old ones because you have
+        a graph and can flexibly grow it by adding more nodes
+            * Clients can continue to use older features, and
+              they can also incrementally update their code to use new features.
+            * especially important for mobile clients because you cannot control the ver-
+                          sion of the API they are using
+            * GraphQL offers a way to deprecate (and hide)
+    * REST APIs eventually turn into a mix of regular REST endpoints plus custom ad hoc
+      endpoints crafted for performance reasons.                          older nodes so that consumers of the schema only see the new ones.
+* pros
+    * decouples clients from servers and allows both of them to evolve and scale independently
+    * efficiency
+    * instead of a client going directly to multiple data services client communicate with the GraphQL service
+        * GraphQL service communicates with the different services
+* cons
+    * malicious queries
+        * complex queries
+            * solution: analyze AST complexity
+        * large result size
+            * solution: limit depth - instrumentation(new MaxQueryDepthInstrumentation(10))
+        * long execution time
+            * solution: limit the execution time
+            * solution: stream the results
+    * n+1 problem
+        * solution: data loader
+    * caching is no longer simple
+        * solution: granularity (per field)
+* 5 key characteristics
+    1. hierarchical: queries as hierarchies of data definitions
+    1. view-centric: by design built to satisfy frontend application requirements
+    1. strongly-typed: typed context (schema) + queries are executed within this context
+    1. introspective: type system (schema) itself is queryable
+    1. version-free: tools for the continuous evolution
 * main concepts
     * one endpoint for all operations
     * always define in request what you expect in response (what you need)
     * three types of operations: queries, mutations, subscriptions
         * subscription - request and stream of responses
     * defined by schema
-* graphQl schema tells you what fields you can request from the API
-* you write a graphQl query describing the data fields you want
 * BFF - backend for frontend API
     * different clients need  different sets of data
     * suppose we have different client with different needs (different types of data)
