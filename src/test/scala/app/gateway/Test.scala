@@ -1,14 +1,14 @@
 package app.gateway
 
-import app.domain.customer.{CustomerId, CustomerView, NewCustomerCommand}
+import app.domain.customer.{CustomerId, NewCustomerCommand}
 import app.domain.order.CustomerDetails
 import app.infrastructure.config.DependencyConfig
 import app.infrastructure.config.customer.CustomerServiceProxy
 import io.circe.literal.JsonStringContext
 import io.circe.{Json, parser}
 import zio.ZIO
-import zio.test.Assertion.{equalTo, isNone, isSome}
-import zio.test.{DefaultRunnableSpec, assertM}
+import zio.test.Assertion._
+import zio.test._
 
 object Test extends DefaultRunnableSpec  {
 
@@ -90,7 +90,15 @@ object Test extends DefaultRunnableSpec  {
                 |""".stripMargin)
         } yield ()
 
-        assertM(result.flatMap(_ => CustomerServiceProxy.getById(CustomerId("1"))))(isSome(equalTo(CustomerView(CustomerId("1"), "MTU test", CustomerDetails(CustomerId("1"), true), false))))
+        for {
+          _ <- result
+          customerMaybe <- CustomerServiceProxy.getById(CustomerId("1"))
+          customer = customerMaybe.get
+          detailsCheck <- assertM(customer.details.run)(equalTo(CustomerDetails(CustomerId("1"), true)))
+        } yield assert(customer.name)(equalTo("MTU test")) &&
+          assert(customer.id)(equalTo(CustomerId("1"))) &&
+          assert(customer.locked)(isFalse) &&
+          detailsCheck
       },
       testM("should delete new customer") {
         val actual: ZIO[GraphQlEnv, Throwable, String] = for {
