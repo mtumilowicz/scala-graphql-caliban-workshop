@@ -2,7 +2,7 @@ package app.gateway.customer.out
 
 import app.domain.customer.Customer
 
-final case class CreatedCustomerApiOutput(id: String, url: String, name: String, locked: Boolean)
+final case class CreatedCustomerApiOutput(id: String, url: String, name: String)
 
 object CreatedCustomerApiOutput {
 
@@ -13,7 +13,6 @@ object CreatedCustomerApiOutput {
     CreatedCustomerApiOutput(
       customer.id.value,
       s"$basePath/${customer.id.value}",
-      customer.name,
-      customer.locked
+      customer.name
     )
 }

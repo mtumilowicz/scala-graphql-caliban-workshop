@@ -3,7 +3,7 @@ package app.gateway.customer.out
 import app.domain.customer._
 import zio.query.UQuery
 
-final case class CustomerApiOutput(id: String, url: String, name: String, details: Option[CustomerDetailsApiOutput], locked: Boolean)
+final case class CustomerApiOutput(id: String, url: String, name: String, details: Option[CustomerDetailsApiOutput])
 
 object CustomerApiOutput {
 
@@ -16,19 +16,6 @@ object CustomerApiOutput {
     customer.id.value,
     s"$basePath/${customer.id.value}",
     customer.name,
-    details,
-    customer.locked
+    details
   )
-
-  def fromDomain(
-                  basePath: String,
-                  customer: Customer
-                ): CustomerApiOutput =
-    CustomerApiOutput(
-      customer.id.value,
-      s"$basePath/${customer.id.value}",
-      customer.name,
-      Some(CustomerDetailsApiOutput("1", true)),
-      customer.locked
-    )
 }

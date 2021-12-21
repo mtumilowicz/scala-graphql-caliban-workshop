@@ -97,7 +97,6 @@ object Test extends DefaultRunnableSpec  {
           detailsCheck <- assertM(customer.details.run)(isSome(equalTo(customerdetails.CustomerDetails(CustomerId("1"), true))))
         } yield assert(customer.name)(equalTo("MTU test")) &&
           assert(customer.id)(equalTo(CustomerId("1"))) &&
-          assert(customer.locked)(isFalse) &&
           detailsCheck
       },
       testM("should delete new customer") {
