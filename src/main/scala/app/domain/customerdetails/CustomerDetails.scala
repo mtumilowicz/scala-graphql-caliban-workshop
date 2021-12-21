@@ -1,4 +1,4 @@
-package app.domain.order
+package app.domain.customerdetails
 
 import app.domain.customer.CustomerId
 

@@ -1,18 +1,24 @@
 package app.domain.customer
 
-import app.domain.order.CustomerDetails
+import app.domain.customerdetails.{CustomerDetails, CustomerDetailsService}
 import zio.query.{DataSource, Request, UQuery, ZQuery}
 import zio.stream.UStream
-import zio.{Task, UIO, ZIO}
+import zio.{Task, UIO}
 
-case class CustomerService(idService: IdService, repository: CustomerRepository) {
+case class CustomerService(idService: IdService,
+                           customerDetailsService: CustomerDetailsService,
+                           repository: CustomerRepository) {
 
-  case class GetCustomerDetails(id: CustomerId) extends Request[Nothing, CustomerDetails]
+  case class GetCustomerDetails(id: CustomerId) extends Request[Nothing, Option[CustomerDetails]]
   val CustomerDetailsDataSource: DataSource[Any, GetCustomerDetails] =
     DataSource.fromFunctionBatchedM("CustomerDetailsDataSource")(
-      requests => ZIO.succeed(requests.map(x => x.id).map(id => CustomerDetails(id, true)))
+      requests => {
+        println(requests)
+        customerDetailsService.getByIds(requests.map(_.id).toSet)
+          .map(x => requests.map(_.id).map(id => x.get(id)))
+      }
     )
-  def getCustomerDetails(id: CustomerId): UQuery[CustomerDetails] = ZQuery.fromRequest(GetCustomerDetails(id))(CustomerDetailsDataSource)
+  def getCustomerDetails(id: CustomerId): UQuery[Option[CustomerDetails]] = ZQuery.fromRequest(GetCustomerDetails(id))(CustomerDetailsDataSource)
 
   def createdCustomers: UStream[Customer] =
     repository.createdCustomers
