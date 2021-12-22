@@ -24,6 +24,8 @@
     * https://medium.com/@ghostdogpr/graphql-in-scala-with-caliban-part-3-8962a02d5d64
     * https://www.peerislands.io/how-to-use-graphql-to-build-bffs/
     * https://graphql.org/
+    * https://www.apollographql.com/docs
+    * https://medium.com/the-marcy-lab-school/what-is-the-n-1-problem-in-graphql-dd4921cb3c1a
 
 ## preface
 * goals of this workshops
@@ -194,136 +196,119 @@ to REST
         * makes a fragment the perfect match for a component
         * represent the data requirements for a single component and then compose them
 
-## mutation
-* queries vs mutations
-  * queries - read only
-  * mutations - add, edit, delete (commands)
-    * typically, the transport protocol is http
-  * queries will be done in parallel, mutations sequentially
-* A mutation can contain multiple fields, resulting in the server executing
-  multiple database WRITE / READ operations. However, unlike query fields,
-  which are executed in parallel, mutation fields run in a series, one after the
-  other. If an API consumer sends two mutation fields, the first is guaranteed to
-  finish before the second begins. This is to ensure that a race condition does
-  not happen, but it also complicates the task of something like DataLoader
-* Remember that a GraphQL mutation is always a WRITE operation followed by a READ
-  operation.
-* mutation for updates
+### mutation
+* queries will be done in parallel, mutations sequentially
+    * if an API consumer sends two mutation fields, the first is guaranteed to
+    finish before the second begins
+* example
     ```
-    mutation {
-        createCustomer(input: {
-            name: "X"
-            email: "Y"
-            clientMutationId: "1"
-        }) {
-            // what to expect in response
-            customer {
-                id
-            }
-        }
-    }
-    ```
-    ```
-    input CreateCustomerInput {
-        ...
+    mutation CreateReviewForEpisode($ep: Episode!, $review: ReviewInput!) {
+      createReview(episode: $ep, review: $review) {
+        stars
+        commentary
+      }
     }
 
-    type CreateCustomerPayload {
-        ...
-    }
-
-    type Mutation {
-        createCustomer(input: CreateCustomerInput): CreateCustomerPayload!
+    { // variables
+      "ep": "JEDI",
+      "review": {
+        "stars": 5,
+        "commentary": "This is a great movie!"
+      }
     }
     ```
+* is always a WRITE operation followed by a READ operation
 
-## subscription
-  * Subscriptions are extremely useful when you need your UIs to autoupdate
-  * For
-    example, while looking at the list of Tasks on the home page, we planned to notify the
-    user when new Task records are available—just like the way Twitter notifies you when
-    there are new tweets on your timeline.
-  * To implement such a feature, you have two options:
-     Make your app continuously ask the server about the list of Tasks.
-     Make your app tell the server that it is interested in new Tasks and would like to
-    be notified when they are created.
-* subscriptions - typically the transport is websocket
-
+### subscription
+* in the majority of cases, client should NOT use subscriptions to stay up to date with backend
+    * use poll intermittently with queries, or re-execute queries on demand when a user performs
+    a relevant action (such as clicking a button)
+* use subscriptions for
+    * small, incremental changes to large objects
+        * polling for a large object is expensive, especially when most of the object's fields rarely change
+        * fetch the object's initial state with a query, and your server can proactively push updates to individual fields
+    * low-latency, real-time updates
+        * example: a chat application's client wants to receive new messages as soon as they're available
 
 ## data loaders
-* Now that we have a GraphQL service with a multimodel schema, we can look at one
-  of GraphQL’s most famous problems, the N+1 queries problem.
-    * Because the GraphQL runtime traverses the tree field by field and resolves each field
-      on its own as it does, this simple GraphQL query resulted in a lot more SQL state-
-      ments than necessary.
+* problem
+    * authors "has many" books
+    * we would like to achieve two SQL calls
+        ```
+        SELECT *
+        FROM authors;
+        -- pretend this returns 3 authors
+        SELECT *
+        FROM books
+        WHERE author_id in (1, 2, 3); -- an array of the author's ids
+        ```
+    * query
+        ```
+        {
+          query { // 1 call
+            authors {
+              name
+              books { // each book resolver would only get it’s own parent author: N calls
+                title
+              }
+            }
+          }
+        }
+        ```
+    * in REST: ORM will help
+        * graphQl: each resolver function really only knows about its own parent object
+            * runtime traverses the tree field by field and resolves each field on its own
+            * ORM won’t have the luxury of a list of author IDs anymore
+            * N+1 calls
+                ```
+                SELECT *
+                FROM authors;
 
-        * Batching—We can delay asking the database about a certain resource until we
-          figure out the IDs of all the records that need to be resolved. Once these IDs
-          are identified, we can use a single query that takes in a list of IDs and returns
-          the list of records for them.
-          * After releasing the GraphQL.js reference implementation, the Facebook team also
-            released a reference implementation for such a library. They named it DataLoader
+                SELECT *
+                FROM books
+                WHERE author_id in (1);
 
-                * DataLoader is a generic JavaScript utility library that can be injected into your applica-
-                  tion’s data-fetching layer to manage caching and batching operations on your behalf.
-                * The DataLoader class constructor expects a function as its argument, and
-                  that function is expected to do the data fetching.
-                  * This function is known as the batch-
-                    loading function because it expects an array of key IDs and should fetch all records asso-
-                    ciated with those IDs in one batch action and then return the records as an array that
-                    has the same order as the array of input IDs.
-                  * DataLoader takes care of batching the first two statements into a single SQL statement
-                    because they happen in the same frame of execution, which is known in Node.js as a
-                    single tick of the event loop
-                  * For the third statement, Dataloader uses its memoization cache of .load() calls.
-                  * While you can do the batching and caching manually, DataLoader enables you to
-                    decouple the data-loading logic in your application without sacrificing the perfor-
-                    mance of the caching and batching optimizations. DataLoader instances present a
-                    consistent API over your various data sources (PostgreSQL, MongoDB, and any oth-
-                    ers)
-                  * DataLoader caching is not meant to be part of your application-level caching that’s
-                    shared among requests.
-                    * It’s meant to be a simple memoization to avoid repeatedly
-                      loading the same data in the context of a single request in your application.
+                SELECT *
+                FROM books
+                WHERE author_id in (2);
 
- * One task that GraphQL makes a bit more challenging is clients’ caching of data.
-    * Responses from REST APIs are a lot easier to cache because of their dictionary nature.
-    * A specific URL gives certain data, so you can use the URL itself as the cache key.
-    * A graph query means a graph cache. If
-      you normalize a GraphQL query response into a flat collection of records and give
-      each record a global unique ID, you can cache those records instead of caching the
-      full responses.
-    * One of the other most famous problems you may encounter when working with
-      GraphQL is commonly referred to as N+1 SQL queries.
-      * Luckily, Facebook is pioneering one possible solution to this data-loading-
-        optimization problem: it’s called DataLoader.
-      * As the name implies, DataLoader is a
-        utility you can use to read data from databases and make it available to GraphQL resolver
-        functions.
-      * You can use DataLoader instead of reading the data directly from databases
-        with SQL queries, and DataLoader will act as your agent to reduce the SQL queries you
-        send to the database
-      * DataLoader uses a combination of batching and caching to accomplish that.
-      * If the
-        same client request results in a need to ask the database about multiple things, Data-
-        Loader can consolidate these questions and batch load their answers from the data-
-        base.
-      * DataLoader also caches the answers and makes them available for subsequent
-        questions about the same resources.
-* n+1 problem
-    ```
-    {
-        customers { // 1 call
+                SELECT *
+                FROM books
+                WHERE author_id in (3);
+                ```
+* solutions
+    * batching
+        * delay asking the database until we will have all appropriate IDs
+    * caching
+        * is not meant to be application-level caching hared among requests
+        * it should be simple memoization to avoid repeatedly loading the same data in the context of a single request
+    * example library: DataLoader (JavaScript utility library)
+        * enables to decouple the data-loading logic without sacrificing the performance
+
+## client cache
+* responses from REST are easy to cache
+    * dictionary nature
+        * specific URL gives certain data
+        * use the URL itself as the cache key
+* solution: graph cache
+    * no URL-like primitive that provides this globally unique identifier for a given object
+    * best practice for the API to expose such an identifier for clients to use
+        ```
+        {
+          starship(id:"3003") { // id field provides a globally unique key
             id
             name
-            orders { // n calls
-                id
-                status
+          }
+          droid(id:"2001") {
+            id
+            name
+            friends {
+              id
+              name
             }
+          }
         }
-    }
-    ```
-    * solution: add async BatchLoader (java dataloader, scala ZQuery)
+        ```
 
 ## pagination
 * https://graphql.org/learn/pagination/
