@@ -47,84 +47,87 @@
 * BFF - backend for frontend API
     * different clients need  different sets of data
         * Web, Iphone, Android, Tv
-    * instead of the frontend application aggregating data by calling and processing information from multiple
-    data sources and APIs, we create a BFF layer
-        * This layer does the following:
-            * Receive request from the client application
-            * Call multiple backend services as required to get the required data
-            * Format the response with just the information required by the client
-            * Respond with the formatted data to the client application
+    * instead of the frontend application aggregating data by calling multiple sources - create a BFF layer
+        * layer does the following:
+            * receive request from the client application
+            * call multiple backend services
+            * format and response according to what is needed by the client
+            * respond to the client
     * pros
-        * Simplify the frontend logic
-        * Avoid over-fetching or under-fetching
-        * Reduce the number of network calls that the client has to make, to render a page
-* the best way to represent data in the real world is with a graph-like data structure
-    * data model is usually a graph of objects with many relations between them
+        * simplify the frontend logic
+        * avoid over-fetching or under-fetching
+        * reduce the number of network calls from the client perspective
+* real world data representation
+    * best way: graph-like data structure
+        * data model is usually a graph of objects with relations between them
     * why think of data in terms of resources (in URLs) or tables?
+
+## graphql
 * GraphQL = Graph Query Language
-* graphQl is a new API standard that provides a more efficient, powerful and flexible alternative
-to REST
-* GraphQL is a strong type system that is used to describe data and organize APIs
-* A GraphQL service can be written in any programming language, and it can be conceptually split into two major parts, structure and behavior:
+* is a new API standard that provides
+    * more efficient,
+    * powerful
+    * flexible
+    * alternative to REST
+* can be written in any programming language
+* has two major parts
     * structure = strongly typed schema
-        * schema is basically a graph of fields that have types
-            * graph represents all the possible data objects that can be read (or updated) through the service
-        * client uses the schema to know what questions they can ask
+        * schema = graph of fields that have types
+            * all possible data objects that can be read (or updated)
+        * client uses the schema to know what are the capabilities of API
     * behavior = resolver functions
         * each field in a GraphQL schema is backed by a resolver function
         * resolver function defines what data to fetch for its field
         * resolver function represents the instructions on how and where to access raw data
-* GraphQL takes the custom endpoint idea to an extreme
-    * the whole server a single smart endpoint
-    * solution to the multiple round-trip problem
-        * API clients ask about multiple resources, and the API server knows how to answer questions
-        about a single resource
+* takes the custom endpoint idea to an extreme
+    * the whole server = single smart endpoint
+    * multiple round-trip problem
         * client has to communicate with the server multiple times to gather all data
-* vs REST
-    * don't need any documentation like swagger
-    * REST has a problem of overfetching (to many fields) and underfetching
-    (many calls to get data you need)
-    * REST: each endpoint represents a resource
-        * when a client needs data about multiple resources, it has to perform multiple network requests
-    * In a pure REST API (not a customized one): a client cannot specify which fields to select
-    * REST APIs big problem is versioning
-        * usually means new endpoints
-        * versioning should be avoided and tools are provided for continuous evolution
-        * basically, you can add new fields and types without removing the old ones because you have
-        a graph and can flexibly grow it by adding more nodes
-            * Clients can continue to use older features, and
-              they can also incrementally update their code to use new features.
-            * especially important for mobile clients because you cannot control the ver-
-                          sion of the API they are using
-            * GraphQL offers a way to deprecate (and hide)
-    * REST APIs eventually turn into a mix of regular REST endpoints plus custom ad hoc
-      endpoints crafted for performance reasons.                          older nodes so that consumers of the schema only see the new ones.
-* pros
-    * decouples clients from servers and allows both of them to evolve and scale independently
-    * efficiency
-    * instead of a client going directly to multiple data services client communicate with the GraphQL service
-        * GraphQL service communicates with the different services
-* cons
-    * malicious queries
-        * complex queries
-            * solution: analyze AST complexity
-        * large result size
-            * solution: limit depth - instrumentation(new MaxQueryDepthInstrumentation(10))
-        * long execution time
-            * solution: limit the execution time
-            * solution: stream the results
-    * n+1 problem
-        * solution: data loader
-    * caching is no longer simple
-        * network layer - unsuitable as there is a common URL for all ops
-        * solution: granularity (per field)
-    * hard to return simple Map
+        * API server knows how to answer questions about a single resource
+        * solution: GraphQL
 * 5 key characteristics
-    1. hierarchical: queries as hierarchies of data definitions
-    1. view-centric: by design built to satisfy frontend application requirements
+    1. hierarchical: queries = hierarchies of data definitions
+    1. view-centric: built to satisfy frontend requirements
     1. strongly-typed: typed context (schema) + queries are executed within this context
     1. introspective: type system (schema) itself is queryable
     1. version-free: tools for the continuous evolution
+* vs REST
+    * don't need any documentation like swagger
+    * REST = over-fetching (to many fields) and under-fetching (many calls to get data you need)
+        * client cannot specify which fields to select
+    * REST: each endpoint represents a resource
+        * multiple network requests
+    * REST: problem with versioning
+        * usually means new endpoints
+        * GraphQL: add new fields and types without removing the old ones
+            * clients can continue to use older features
+                * can also incrementally update their code to use new features
+            * important for mobile clients
+                * you cannot control the version of the API they are using
+            * GraphQL offers a way to deprecate (and hide)
+    * REST: turn into a mix of regular REST endpoints plus custom endpoints crafted for performance reasons
+* summary
+    * pros
+        * decouples clients from servers
+            * allows both of them to evolve and scale independently
+        * efficiency
+        * simplify client logic: client communicate with the GraphQL service
+            * GraphQL service communicates with the different services
+    * cons
+        * malicious queries
+            * complex queries
+                * solution: analyze AST complexity
+            * large result size
+                * solution: limit depth
+            * long execution time
+                * solution: limit the execution time
+                * solution: stream the results
+        * n+1 problem
+            * solution: data loader
+        * caching is no longer simple
+            * network layer - unsuitable as there is a common URL for all operations
+            * solution: granularity (per field)
+        * hard to return simple Map
 
 ## schema
 * something like swagger: graphql/graphiql
@@ -143,7 +146,7 @@ to REST
     * however, make all root fields nullable
         * in this case, nullability means that something went wrong but we’re allowing it to show other fields
 * scalar
-    * fields don't have any sub-fields
+    * don't have any sub-fields
     * predefined: ID, Boolean, Int, String
 
 ## operations
@@ -157,6 +160,7 @@ to REST
         * require the use of a data-transport channel that supports continuous pushing
         of data
             * usually done with WebSockets
+
 ### query
 * example
     ```
@@ -171,8 +175,7 @@ to REST
     ```
 * steps
     1. validate the request against its schema
-    1. traverse the tree of fields in that request and invoke the resolver function
-    associated with each field
+    1. traverse the tree of fields and invoke the resolver functions
 * fragment
     * example
         ```
@@ -201,9 +204,12 @@ to REST
         * represent the data requirements for a single component and then compose them
 
 ### mutation
-* queries will be done in parallel, mutations sequentially
-    * if an API consumer sends two mutation fields, the first is guaranteed to
-    finish before the second begins
+* is always a WRITE operation followed by a READ operation
+* vs queries
+    * queries will be done in parallel
+    * mutations sequentially
+        * if an API consumer sends two mutation fields, the first is guaranteed to
+        finish before the second begins
 * example
     ```
     mutation CreateReviewForEpisode($ep: Episode!, $review: ReviewInput!) {
@@ -221,21 +227,24 @@ to REST
       }
     }
     ```
-* is always a WRITE operation followed by a READ operation
 
 ### subscription
-* in the majority of cases, client should NOT use subscriptions to stay up to date with backend
-    * use poll intermittently with queries, or re-execute queries on demand when a user performs
+* client should NOT use subscriptions to stay up to date with backend
+    * use poll intermittently with queries
+    * re-execute queries on demand when a user performs
     a relevant action (such as clicking a button)
 * use subscriptions for
     * small, incremental changes to large objects
-        * polling for a large object is expensive, especially when most of the object's fields rarely change
-        * fetch the object's initial state with a query, and your server can proactively push updates to individual fields
+        * polling for a large object is expensive
+            * especially when most of the object's fields rarely change
+        * fetch the object's initial state with a query
+            * server can proactively push updates to individual fields
     * low-latency, real-time updates
-        * example: a chat application's client wants to receive new messages as soon as they're available
+        * example: a chat application
 
 ## data loaders
 * problem
+    * querying for authors and books
     * authors "has many" books
     * we would like to achieve two SQL calls
         ```
@@ -260,43 +269,41 @@ to REST
         }
         ```
     * in REST: ORM will help
-        * graphQl: each resolver function really only knows about its own parent object
-            * runtime traverses the tree field by field and resolves each field on its own
-            * ORM won’t have the luxury of a list of author IDs anymore
-            * N+1 calls
-                ```
-                SELECT *
-                FROM authors;
+    * in graphQl: each resolver function really only knows about its own parent object
+        * ORM won’t have the luxury of a list of author IDs anymore
+        * result: N+1 calls
+            ```
+            SELECT *
+            FROM authors;
 
-                SELECT *
-                FROM books
-                WHERE author_id in (1);
+            SELECT *
+            FROM books
+            WHERE author_id in (1);
 
-                SELECT *
-                FROM books
-                WHERE author_id in (2);
+            SELECT *
+            FROM books
+            WHERE author_id in (2);
 
-                SELECT *
-                FROM books
-                WHERE author_id in (3);
-                ```
+            SELECT *
+            FROM books
+            WHERE author_id in (3);
+            ```
 * solutions
     * batching
         * delay asking the database until we will have all appropriate IDs
     * caching
-        * is not meant to be application-level caching hared among requests
-        * it should be simple memoization to avoid repeatedly loading the same data in the context of a single request
+        * no application-level caching shared among requests
+        * rather simple memoization in the context of a single request
     * example library: DataLoader (JavaScript utility library)
-        * enables to decouple the data-loading logic without sacrificing the performance
 
 ## client cache
 * responses from REST are easy to cache
     * dictionary nature
         * specific URL gives certain data
         * use the URL itself as the cache key
-* solution: graph cache
-    * no URL-like primitive that provides this globally unique identifier for a given object
-    * best practice for the API to expose such an identifier for clients to use
+* in graphQl: graph cache
+    * no URL-like primitive (globally unique identifier for a given object)
+    * best practice: expose such an identifier for clients to use
         ```
         {
           starship(id:"3003") { // id field provides a globally unique key
@@ -315,34 +322,37 @@ to REST
         ```
 
 ## pagination
-* in which situations is it useful to display and load data in chunks, or "pages"?
+* two scenarios
     * UX concern: too many items to display
         * mental overload for the user to see them all at once
     * performance concern: too many items to load
         * it would overload our backend, the connection, or the client to load all of the items at once
-* types of pagination UX
-    * numbered pages, like in a book, or in Google search results
+* types of pagination from the UX perspective
+    * numbered pages
+        * example: book, Google search
         * expect it to be consistent over some period of time
-        * example
+        * sql
             ```
             SELECT * FROM posts ORDER BY created_at LIMIT 10 OFFSET 20; // page 3, with a page size of 10
             SELECT COUNT(*) FROM posts; // total number of entries or pages in the results
             ```
         * drawbacks
-            * for mostly static content where items don’t move between pages frequently, page numbers are great
-            * however, usually items are added and removed while the user is navigating to different pages
-                * skipping an item
-                * displaying the same item twice
-                    * a new item was added at the top of the list, causing the skip and limit approach to show the
-                    item at the boundary between pages twice
+            * only for mostly static content
+            * however, usually items are added and removed while the user is navigating
+                * leads to skipping items
+                * or displaying the same item twice
+                    * new item was added at the top of the list
+                        * skip and limit approach to show the item at the boundary between pages twice
     * sequential pages like Reddit
         * aren’t numbered
-        * content changes so rapidly that it isn’t meaningful to have page numbers at all
-        * just specify the place in the list we want to begin, and then how many items we want to fetch
+        * content changes so rapidly - no point in page numbers at all
+        * specify the place in the list we want to begin, and how many items we want to fetch
             * it doesn’t matter how many items were added to the top of the list
             * we have a constant pointer to the specific spot where we left off
                 * pointer is called a cursor
-                * cursor is a piece of data, generally some kind of ID, that represents a location in a paginated list
+                * cursor is a piece of data
+                    * generally some kind of ID
+                    * represents a location in a paginated list
         * example
             ```
             SELECT * FROM posts
@@ -356,16 +366,18 @@ to REST
             * we don’t want the query to fail if a specific item is removed
     * infinite scroll like Twitter
         * illusion of one very long page
-    * modern apps today use either the second or third approach — in the world where your app’s content is constantly
-    changing, it doesn’t make sense to create the illusion of numbered pages
+    * modern apps today use either the second or third approach
+        * app’s content is constantly changing
+        * doesn’t make sense to create the illusion of numbered pages
 
 ### relay cursor connections
 * generic specification for how a GraphQL server should expose paginated data
-* generalized the concepts we were talking about above
-    * `friends(first:2 after:$opaqueCursor) // friends(first:2 after:$friendId)`
-        * cursors are opaque and that their format should not be relied upon, we suggest base64 encoding them
-        * gives additional flexibility if the pagination model changes in the future
-            * ability to change how our backend does pagination, since the user just uses opaque cursors
+* generalized concepts we were talking about above
+    * `friends(first:2 after:$opaqueCursor) // vs friends(first:2 after:$friendId)`
+        * cursors are opaque and their format should not be relied upon
+            * suggestion: base64 encoding
+        * additional flexibility for pagination model changes
+            * user just uses opaque cursors
 * example
     * request
         ```
@@ -430,7 +442,7 @@ to REST
     * connection - paginated field on an object
         * example: friends field on a user
     * edge - metadata about one object in the paginated list
-        * and includes a cursor to allow pagination starting from that object
+        * includes a cursor to allow pagination starting from that object
     * node - actual object
     * pageInfo - info about more pages of data to fetch
 
@@ -461,10 +473,10 @@ to REST
     * purely functional (strongly typed, explicit errors)
     * user friendly
     * schema / resolver separation
-* vs sangria, sangria is
-    * lots of boilerplate (macros to the rescue)
-    * future based (effects are better)
-    * schema and resolved tied together
+* vs sangria
+    * sangria: lots of boilerplate (macros to the rescue)
+    * sangria: future based (effects are better)
+    * sangria: schema and resolved tied together
 * schema is derived automatically from the case classes
     * mangolia - used for create schema for traits and case classes
         * provide a schema for custom types
