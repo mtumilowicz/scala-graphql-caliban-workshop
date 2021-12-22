@@ -26,6 +26,10 @@
     * https://graphql.org/
     * https://www.apollographql.com/docs
     * https://medium.com/the-marcy-lab-school/what-is-the-n-1-problem-in-graphql-dd4921cb3c1a
+    * https://www.apollographql.com/blog/graphql/explaining-graphql-connections/
+    * https://www.apollographql.com/blog/graphql/pagination/understanding-pagination-rest-graphql-and-relay
+    * https://www.sitepoint.com/paginating-real-time-data-cursor-based-pagination/
+    * https://shopify.dev/api/usage/pagination-graphql
 
 ## preface
 * goals of this workshops
@@ -311,7 +315,124 @@ to REST
         ```
 
 ## pagination
-* https://graphql.org/learn/pagination/
+* in which situations is it useful to display and load data in chunks, or "pages"?
+    * UX concern: too many items to display
+        * mental overload for the user to see them all at once
+    * performance concern: too many items to load
+        * it would overload our backend, the connection, or the client to load all of the items at once
+* types of pagination UX
+    * numbered pages, like in a book, or in Google search results
+        * expect it to be consistent over some period of time
+        * example
+            ```
+            SELECT * FROM posts ORDER BY created_at LIMIT 10 OFFSET 20; // page 3, with a page size of 10
+            SELECT COUNT(*) FROM posts; // total number of entries or pages in the results
+            ```
+        * drawbacks
+            * for mostly static content where items don’t move between pages frequently, page numbers are great
+            * however, usually items are added and removed while the user is navigating to different pages
+                * skipping an item
+                * displaying the same item twice
+                    * a new item was added at the top of the list, causing the skip and limit approach to show the
+                    item at the boundary between pages twice
+    * sequential pages like Reddit
+        * aren’t numbered
+        * content changes so rapidly that it isn’t meaningful to have page numbers at all
+        * just specify the place in the list we want to begin, and then how many items we want to fetch
+            * it doesn’t matter how many items were added to the top of the list
+            * we have a constant pointer to the specific spot where we left off
+                * pointer is called a cursor
+                * cursor is a piece of data, generally some kind of ID, that represents a location in a paginated list
+        * example
+            ```
+            SELECT * FROM posts
+            WHERE created_at < $after
+            ORDER BY created_at LIMIT $page_size;
+
+            https://www.reddit.com/?count=25&after=t3_49i88b
+            ```
+        * good practice: encoded cursor with some metadata or a timestamp (instead of a row ID)
+            * resilient to row deletion
+            * we don’t want the query to fail if a specific item is removed
+    * infinite scroll like Twitter
+        * illusion of one very long page
+    * modern apps today use either the second or third approach — in the world where your app’s content is constantly
+    changing, it doesn’t make sense to create the illusion of numbered pages
+
+### relay cursor connections
+* generic specification for how a GraphQL server should expose paginated data
+* generalized the concepts we were talking about above
+    * `friends(first:2 after:$opaqueCursor) // friends(first:2 after:$friendId)`
+        * cursors are opaque and that their format should not be relied upon, we suggest base64 encoding them
+        * gives additional flexibility if the pagination model changes in the future
+            * ability to change how our backend does pagination, since the user just uses opaque cursors
+* example
+    * request
+        ```
+        {
+          user {
+            id
+            name
+            friends(first: 10, after: "opaqueCursor") {
+              edges { // each edge has a reference to the user object of the friend, and a cursor
+                cursor // every item in the paginated list has its own cursor
+                node {
+                  id
+                  name
+                }
+              }
+              pageInfo {
+                hasNextPage
+              }
+            }
+          }
+        }
+        ```
+        * notice that if we want to, we can ask for 10 friends starting from the middle of the list we last fetched
+    * response
+        ```
+        {
+          "data": {
+            "products": {
+              "pageInfo": {
+                "hasNextPage": true,
+                "hasPreviousPage": false
+              },
+              "edges": [
+                {
+                  "cursor": "eyJsYXN0X2lkIjoxMDA3OTc4ODg3NiwibGFzdF92YWx1ZSI6IjEwMDc5Nzg4ODc2In0=",
+                  "node": {
+                    "id": "1",
+                    "name": "Michal"
+                  }
+                },
+                {
+                  "cursor": "eyJsYXN0X2lkIjoxMDA3OTc5MzQyMCwibGFzdF92YWx1ZSI6IjEwMDc5NzkzNDIwIn0=",
+                  "node": {
+                    "id": "2",
+                    "name": "Marcin"
+                  }
+                },
+                {
+                  "cursor": "eyJsYXN0X2lkIjoxMDA3OTc5NDM4MCwibGFzdF92YWx1ZSI6IjEwMDc5Nzk0MzgwIn0=",
+                  "node": {
+                    "id": "3",
+                    "name": "Anna"
+                  }
+                }
+              ]
+            }
+          },
+          ...
+        }
+        ```
+* glossary
+    * connection - paginated field on an object
+        * example: friends field on a user
+    * edge - metadata about one object in the paginated list
+        * and includes a cursor to allow pagination starting from that object
+    * node - actual object
+    * pageInfo - info about more pages of data to fetch
 
 ## security
 * critical threat: resource-exhaustion attacks (DOS attacks) with overly complex queries
@@ -350,6 +471,7 @@ to REST
             ```
             implicit val nesSchema: Schema[NonEmptyString] = Schema.stringSchema.contramap(_.value)
             ```
+            * many useful types: https://github.com/niqdev/caliban-extras
     ```
     val api = graphQL(resolver)
     println(api.render) // prints derived schema
