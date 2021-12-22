@@ -313,77 +313,88 @@ to REST
 ## pagination
 * https://graphql.org/learn/pagination/
 
+## security
+* critical threat: resource-exhaustion attacks (DOS attacks) with overly complex queries
+    * are not specific to GraphQL
+    * example: query for deeply nested relationships
+        * (user –> friends –> friends –> friends …)
+    * example use field aliases to ask for the same field many times
+        ```
+        {
+          empireHero: hero(episode: EMPIRE) {
+            name
+          }
+          jediHero: hero(episode: JEDI) {
+            name
+          }
+        }
+        ```
+* solution
+    * cost analysis on the query
+    * enforce limits on the amount of data
+    * timeouts
+
 ## caliban
-* val api = graphQL(resolver)
-  * println(api.render) // prints schema
+* features
+    * minimize boilerplate
+    * purely functional (strongly typed, explicit errors)
+    * user friendly
+    * schema / resolver separation
 * vs sangria, sangria is
-  * lots of boilerplate (macros to the rescue)
-  * future based (effects are better)
-  * schema and resolved tied together
-* caliban is
-  * minimize boilerplate
-  * purely functional (strongly typed, explicit errors)
-  * user friendly
-  * schema / resolver separation
-* plan of action
-  * query -> parsing -> validation (vs schema) -> execution -> result
-* schema deriving
-  * case class Pug { name: String, nicknames: List[String], pictureUrl: Option[String] }
-    * type: Pug { name: String, nicknames: [String!]!, pictureUrl: String }
-    * optionality -> option
-  * enums
-    * sealed trait Color
-      case object FAWN extends Color
-      * type: enum Color { FAWN }
-  * arguments
-    * case class PugName(name: String)
-      case class Queries(pug: PugName => Option[Pug])
-    * type: Queries { pug(name: String!): Pug }
-* resolver
-  case class Queries(pug: PugName => Task[Pug])
-  val resolver = Queries( args => PugService.findPugs(args.name), ... )
-* trait Schema[R, T]
-  * R for enviroment
-* mangolia - used for create schema for traits and case classes
-* execution
-  1. schema + resolver => execution plan (tree of steps)
-     * at the root bunch of fields, and for each fields the next steps
-  2. filter plan to include only requested fields
-     * cut the branches that we don't need
-  3. reduce plan to pure values and effects
-     * an object step that has only pure values leaves -> it could be also pure value
-  4. run effects
-    * n+1 problems
-      * { orders { id customer { name } }
-        * fetch order (1 query)
-        * fetch customer (n query)
-      * ZQuery to the rescue
+    * lots of boilerplate (macros to the rescue)
+    * future based (effects are better)
+    * schema and resolved tied together
+* schema is derived automatically from the case classes
+    * mangolia - used for create schema for traits and case classes
+        * provide a schema for custom types
+            ```
+            implicit val nesSchema: Schema[NonEmptyString] = Schema.stringSchema.contramap(_.value)
+            ```
+    ```
+    val api = graphQL(resolver)
+    println(api.render) // prints derived schema
+    ```
+* schema deriving examples
+    * case classes
+        ```
+        case class Pug(name: String, nicknames: List[String], pictureUrl: Option[String])
+        ```
+        is transformed into
+        ```
+        type: Pug {
+            name: String,
+            nicknames: [String!]!,
+            pictureUrl: String // optionality -> option
+        }
+        ```
+    * enums
+        ```
+        sealed trait Color
+        case object FAWN extends Color
+        ```
+        is transformed into
+        ```
+        type: enum Color { FAWN }
+        ```
+    * arguments
+        ```
+        case class PugName(name: String)
+        case class Queries(pug: PugName => Option[Pug])
+        ```
+        is transformed into
+        ```
+        type: Queries { pug(name: String!): Pug }
+        ```
+* n+1 problem
+    * solution: `ZQuery`
         * parallelize queries
         * cache identical queries
         * batch queries if batching function provided
-* provide a schema for custom types
-  * implicit val nesSchema: Schema[NonEmptyString] = Schema.stringSchema.contramap(_.value)
-* http4s module
-  * val route: HttpRoutes[RIO[R, *]] = Http4sAdapter.makeRestService(interpreter)
 * builtin wrappers
     ```
-  val api = graphQL(...) @@
-    maxDdepth(30) @@
-    maxFields(200) @@
-    timeout(10 seconds) @@
-    printSlowQueries(1 second)
-  ```
-
-## security
-* A critical threat for GraphQL APIs is resource-exhaustion attacks (aka denial-of-service
-  attacks). A GraphQL server can be attacked with overly complex queries that consume
-  all the server resources.
-* It is very simple to query for deeply nested relationships (user
-  –> friends –> friends –> friends …) or use field aliases to ask for the same field many
-  times.
-* Resource-exhaustion attacks are not specific to GraphQL, but when working with
-  GraphQL, you have to be extra careful about them.
-* You can implement cost analysis on the query
-  in advance and enforce limits on the amount of data that can be consumed.
-* You can
-  also implement a timeout to kill requests that take too long to resolve.
+    val api = graphQL(...) @@
+      maxDdepth(30) @@
+      maxFields(200) @@
+      timeout(10 seconds) @@
+      printSlowQueries(1 second)
+    ```
