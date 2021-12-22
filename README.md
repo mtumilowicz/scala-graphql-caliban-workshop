@@ -38,6 +38,20 @@
     * task3: implement getting orders in batch
 
 ## introduction
+* BFF - backend for frontend API
+    * different clients need  different sets of data
+        * Web, Iphone, Android, Tv
+    * instead of the frontend application aggregating data by calling and processing information from multiple
+    data sources and APIs, we create a BFF layer
+        * This layer does the following:
+            * Receive request from the client application
+            * Call multiple backend services as required to get the required data
+            * Format the response with just the information required by the client
+            * Respond with the formatted data to the client application
+    * pros
+        * Simplify the frontend logic
+        * Avoid over-fetching or under-fetching
+        * Reduce the number of network calls that the client has to make, to render a page
 * the best way to represent data in the real world is with a graph-like data structure
     * data model is usually a graph of objects with many relations between them
     * why think of data in terms of resources (in URLs) or tables?
@@ -105,25 +119,6 @@ to REST
     1. strongly-typed: typed context (schema) + queries are executed within this context
     1. introspective: type system (schema) itself is queryable
     1. version-free: tools for the continuous evolution
-* three types of operations
-    * queries
-    * mutations
-    * subscriptions
-        * stream of responses
-* BFF - backend for frontend API
-    * different clients need  different sets of data
-        * Web, Iphone, Android, Tv
-    * instead of the frontend application aggregating data by calling and processing information from multiple
-    data sources and APIs, we create a BFF layer
-        * This layer does the following:
-            * Receive request from the client application
-            * Call multiple backend services as required to get the required data
-            * Format the response with just the information required by the client
-            * Respond with the formatted data to the client application
-    * pros
-        * Simplify the frontend logic
-        * Avoid over-fetching or under-fetching
-        * Reduce the number of network calls that the client has to make, to render a page
 
 ## schema
 * something like swagger: graphql/graphiql
@@ -137,7 +132,6 @@ to REST
       length(unit: LengthUnit = METER): Float // argument
     }
     ```
-* list of objects: `[]`
 * good practices
     * usually make the types of fields non-null
     * however, make all root fields nullable
@@ -147,113 +141,65 @@ to REST
     * predefined: ID, Boolean, Int, String
 
 ## operations
-* All GraphQL operations must specify their selections down to fields that return
-  scalar values (leaf values)
-    * For example, they cannot have fields that describe objects
-      without providing further nested selection sets to specify which scalar values to fetch
-      for these objects.
-* GraphQL operations
-  * Queries represent READ operations.
-  * Mutations represent WRITE -then- READ opera-tions.
-    * You can think of mutations as queries that have side effects.
-  * GraphQL also supports a third request type called
-    a subscription, used for real-time data monitoring requests
-    * GraphQL subscriptions require the use of a data-transport channel that supports con-
-      tinuous pushing of data.
-    * That’s usually done with WebSockets for web applications.
-
-## query
-* When you ask for a list of records from a collection, a good API will always ask you to
-  provide a limit.
+* three types of operations
+    * queries (READ operations)
+    * mutations (WRITE-then-READ operations)
+        * queries that have side effects
+    * subscriptions
+        * stream of responses
+        * used for real-time data monitoring
+        * require the use of a data-transport channel that supports continuous pushing
+        of data
+            * usually done with WebSockets
+### query
 * example
-          query {
-          employee(id: 42) {
+    ```
+    {
+      hero {
+        name
+        friends {
           name
-          email
-          }
-          }
-    * type Employee(id: Int!) {
-      name: String!
-      email: String!
+        }
       }
-      * The service can receive and parse any request. It then tries to validate the request
-        against its schema.
-      * The next step is to pre-
-        pare the data it is asking for. To do that, the GraphQL service traverses the tree of
-        fields in that request and invokes the resolver function associated with each field.
-      * It
-        then gathers the data returned by these resolver functions and uses it to form a single
-        response.
+    }
+    ```
+* steps
+    1. validate the request against its schema
+    1. traverse the tree of fields in that request and invoke the resolver function
+    associated with each field
+* fragment
+    * example
+        ```
+        {
+          leftComparison: hero(episode: EMPIRE) {
+            ...comparisonFields // spread that fragment
+          }
+          rightComparison: hero(episode: JEDI) {
+            ...comparisonFields // spread that fragment
+          }
+        }
+
+        fragment comparisonFields on Character {
+          name
+          appearsIn
+          friends {
+            name
+          }
+        }
+        ```
+    * are the composition units of the language
+    * are the reusable piece of any GraphQL operation
+    * split operations into smaller parts
+    * data required by an application = sum of the data required by individual components
+        * makes a fragment the perfect match for a component
+        * represent the data requirements for a single component and then compose them
+
+## mutation
 * queries vs mutations
   * queries - read only
   * mutations - add, edit, delete (commands)
     * typically, the transport protocol is http
   * queries will be done in parallel, mutations sequentially
-* fragment
-        * In GraphQL, fragments are the composition units of the language.
-        * They provide a
-          way to split big GraphQL operations into smaller parts.
-        * A fragment in GraphQL is sim-
-          ply a reusable piece of any GraphQL operation.
-
-            * Splitting a big GraphQL document into smaller parts is the main advantage of
-              GraphQL fragments.
-              * However, fragments can also be used to avoid duplicating a
-                group of fields in a GraphQL operation.
-
-                  * original
-                    * query OrgInfo {
-                      organization(login: "jscomplete") {
-                      name
-                      description
-                      websiteUrl
-                      }
-                      }
-                  * fragment orgFields on Organization {
-                    name
-                    description
-                    websiteUrl
-                    }
-
-      * query OrgInfoWithFragment {
-        organization(login: "jscomplete") {
-        ...orgFields
-        }
-        }
-
-            * The three dots before orgFields are what you use to spread that fragment.
-            * The three-dotted fragment name ( ...orgFields ) is called a fragment spread
-
-        * The
-          data required by an application is the sum of the data required by that application’s
-          individual components, and GraphQL fragments offer a way to split a big query into
-          smaller ones.
-        * This makes a GraphQL fragment the perfect match for a component!
-
-        * We can use a GraphQL fragment to represent the data requirements for a single com-
-          ponent and then put these fragments together to compose the data requirements for
-          the entire application.
-
-                * By making every component
-                  responsible for declaring the data it needs, these components have the power to
-                  change their data requirements when necessary without having to depend on any of
-                  their parent components in the tree.
-    ```
-    query MyQuery ($name1: String) {
-        country1: getCountries(name: $name1, first: 1) { // country1 alias, first - pagination
-            ...fields
-        }
-    }
-
-    fragment fields on Country {
-        id
-        name
-        ... other fields
-    }
-    ```
-    * be declarative - it is deliberate that there is no wildcard (*) to get everything
-
-## mutation
 * A mutation can contain multiple fields, resulting in the server executing
   multiple database WRITE / READ operations. However, unlike query fields,
   which are executed in parallel, mutation fields run in a series, one after the
