@@ -7,5 +7,5 @@ case class CustomerDetailsApiOutput(id: String, locked: Boolean)
 
 object CustomerDetailsApiOutput {
   def fromDomain(detailsQuery: UQuery[Option[CustomerDetails]]): UQuery[Option[CustomerDetailsApiOutput]] =
-    detailsQuery.map(_.map(details => CustomerDetailsApiOutput(id = details.id.value, locked = details.locked)))
+    detailsQuery.map(_.map(details => CustomerDetailsApiOutput(id = details.id.raw, locked = details.locked)))
 }

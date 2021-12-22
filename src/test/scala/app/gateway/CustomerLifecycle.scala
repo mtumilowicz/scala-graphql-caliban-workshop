@@ -12,7 +12,7 @@ object CustomerLifecycle {
         s"""
            |query {
            |	customers {
-           |		findById(value: "$id") {
+           |		findById(id: "$id") {
            |			id
            |     url
            |			name
@@ -47,7 +47,7 @@ object CustomerLifecycle {
       s"""
         |mutation {
         |	customers {
-        |		deleteById(value: "$id")
+        |		deleteById(id: "$id")
         |	}
         |}
         |""".stripMargin)

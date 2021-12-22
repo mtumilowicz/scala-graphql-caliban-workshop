@@ -11,8 +11,8 @@ object CreatedCustomerApiOutput {
                   customer: Customer
                 ): CreatedCustomerApiOutput =
     CreatedCustomerApiOutput(
-      customer.id.value,
-      s"$basePath/${customer.id.value}",
+      customer.id.raw,
+      s"$basePath/${customer.id.raw}",
       customer.name
     )
 }

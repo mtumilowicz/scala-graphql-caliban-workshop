@@ -7,7 +7,10 @@ import caliban.execution.Field
 import zio.URIO
 import zio.query.UQuery
 
-case class CustomerGraphQlQueries private(findById: Field => CustomerId => URIO[CustomerServiceEnv, Option[UQuery[CustomerApiOutput]]])
+case class FindByIdArg(id: String) {
+  def toCustomerId: CustomerId = CustomerId(id)
+}
+case class CustomerGraphQlQueries private(findById: Field => FindByIdArg => URIO[CustomerServiceEnv, Option[UQuery[CustomerApiOutput]]])
 
 object CustomerGraphQlQueries {
 
@@ -17,10 +20,10 @@ object CustomerGraphQlQueries {
     CustomerGraphQlQueries(field => findById(field).andThen(_.map(_.map(CustomerApiOutput.fromDomain(rootUri, _)))))
   }
 
-  private def findById(field: Field): CustomerId => URIO[CustomerServiceEnv, Option[CustomerView]] =
+  private def findById(field: Field): FindByIdArg => URIO[CustomerServiceEnv, Option[CustomerView]] =
     if (field.fields.map(_.name).contains("details")) {
-      CustomerServiceProxy.getById
+      args => CustomerServiceProxy.getById(args.toCustomerId)
     } else {
-      CustomerServiceProxy.getByIdWithoutDetails
+      args => CustomerServiceProxy.getByIdWithoutDetails(args.toCustomerId)
     }
 }
