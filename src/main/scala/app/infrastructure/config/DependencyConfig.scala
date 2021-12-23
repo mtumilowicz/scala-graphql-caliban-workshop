@@ -11,7 +11,7 @@ import zio.clock.Clock
 import zio.console.Console
 import zio.logging.Logging
 import zio.logging.slf4j.Slf4jLogger
-import zio.{URLayer, ZLayer}
+import zio.{ULayer, URLayer, ZLayer}
 
 object DependencyConfig {
 
@@ -60,10 +60,10 @@ object DependencyConfig {
   }
 
   object inMemory {
-    private val internalRepository: URLayer[Any, InternalRepositoryEnv] = IdConfig.deterministicRepository ++ CustomerDetailsConfig.inMemoryRepository
+    private val internalRepository: ULayer[InternalRepositoryEnv] = IdConfig.deterministicRepository ++ CustomerDetailsConfig.inMemoryRepository
     private val internalService: URLayer[InternalRepositoryEnv, InternalServiceEnv] = IdConfig.service ++ CustomerDetailsConfig.service
-    private val apiRepository: URLayer[Any, ApiRepositoryEnv] = CustomerConfig.inMemoryRepository
+    private val apiRepository: ULayer[ApiRepositoryEnv] = CustomerConfig.inMemoryRepository
     private val apiService: URLayer[InternalServiceEnv with ApiRepositoryEnv, ApiServiceEnv] = CustomerConfig.service
-    val appLayer: URLayer[Any, GraphQlEnv] = ((internalRepository >>> internalService) ++ apiRepository) >>> (Console.live ++ Clock.live ++ apiService)
+    val appLayer: ULayer[GraphQlEnv] = ((internalRepository >>> internalService) ++ apiRepository) >>> (Console.live ++ Clock.live ++ apiService)
   }
 }
