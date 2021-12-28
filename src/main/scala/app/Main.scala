@@ -13,7 +13,7 @@ import zio.{ExitCode => ZExitCode, _}
 object Main extends App {
   type AppTask[A] = RIO[DependencyConfig.AppEnv with Clock, A]
 
-  override def run(args: List[String]): ZIO[ZEnv, Nothing, ZExitCode] = {
+  override def run(args: List[String]): URIO[ZEnv, ZExitCode] = {
     val prog =
       for {
         cfg <- getAppConfig
