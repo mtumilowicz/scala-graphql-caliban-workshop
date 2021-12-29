@@ -1,6 +1,7 @@
 package app
 
 import app.gateway.{GraphQlController, GraphQlEnv}
+import app.infrastructure.config.DependencyConfig.AppEnv
 import app.infrastructure.config._
 import app.infrastructure.config.http.HttpConfig
 import caliban.{CalibanError, GraphQLInterpreter, Http4sAdapter}
@@ -12,7 +13,7 @@ import zio.interop.catz._
 import zio.{ExitCode => ZExitCode, _}
 
 object Main extends App {
-  type AppTask[A] = RIO[DependencyConfig.AppEnv, A]
+  type AppTask[A] = RIO[AppEnv, A]
 
   override def run(args: List[String]): URIO[ZEnv, ZExitCode] = {
     program
