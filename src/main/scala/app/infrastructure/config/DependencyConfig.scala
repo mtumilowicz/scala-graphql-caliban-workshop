@@ -11,12 +11,12 @@ import zio.clock.Clock
 import zio.console.Console
 import zio.logging.Logging
 import zio.logging.slf4j.Slf4jLogger
-import zio.{ULayer, URLayer, ZLayer}
+import zio.{ULayer, URLayer, ZEnv, ZLayer}
 
 object DependencyConfig {
 
   type Core =
-    AppConfigEnv with Logging with Blocking with Console
+    AppConfigEnv with Logging with ZEnv
 
   type Gateway =
     Core with HttpConfigEnv
@@ -38,7 +38,7 @@ object DependencyConfig {
   object live {
 
     val core: ZLayer[Blocking, Throwable, Core] =
-      Blocking.any ++ AppConfig.live ++ Slf4jLogger.make((_, msg) => msg) ++ Console.live
+      AppConfig.live ++ Slf4jLogger.make((_, msg) => msg) ++ ZEnv.live
 
     val gateway: ZLayer[Core, Throwable, Gateway] =
       HttpConfig.fromAppConfig ++ ZLayer.identity
