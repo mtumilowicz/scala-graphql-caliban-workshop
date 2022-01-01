@@ -6,7 +6,6 @@ import app.infrastructure.config.customer.CustomerConfig
 import app.infrastructure.config.customerdetails.CustomerDetailsConfig
 import app.infrastructure.config.http.HttpConfig
 import app.infrastructure.config.id.IdConfig
-import zio.blocking.Blocking
 import zio.clock.Clock
 import zio.console.Console
 import zio.logging.Logging
@@ -18,11 +17,11 @@ object DependencyConfig {
   type Core =
     AppConfigEnv with Logging with ZEnv
 
-  type Gateway =
+  type GatewayConfiguration =
     Core with HttpConfigEnv
 
   type InternalRepository =
-    Gateway with InternalRepositoryEnv
+    GatewayConfiguration with InternalRepositoryEnv
 
   type InternalService =
     InternalRepository with InternalServiceEnv
@@ -37,13 +36,13 @@ object DependencyConfig {
 
   object live {
 
-    val core: ZLayer[Blocking, Throwable, Core] =
+    val core: ZLayer[Any, Throwable, Core] =
       AppConfig.live ++ Slf4jLogger.make((_, msg) => msg) ++ ZEnv.live
 
-    val gateway: ZLayer[Core, Throwable, Gateway] =
+    val gatewayConfiguration: ZLayer[Core, Throwable, GatewayConfiguration] =
       HttpConfig.fromAppConfig ++ ZLayer.identity
 
-    val internalRepository: ZLayer[Gateway, Throwable, InternalRepository] =
+    val internalRepository: ZLayer[GatewayConfiguration, Throwable, InternalRepository] =
       IdConfig.deterministicRepository ++ CustomerDetailsConfig.inMemoryRepository ++ ZLayer.identity
 
     val internalService: ZLayer[InternalRepository, Throwable, InternalService] =
@@ -55,8 +54,13 @@ object DependencyConfig {
     val apiService: ZLayer[ApiRepository, Throwable, ApiService] =
       CustomerConfig.service ++ ZLayer.identity
 
-    val appLayer: ZLayer[Blocking, Throwable, AppEnv] =
-      core >>> gateway >>> internalRepository >>> internalService >>> apiRepository >>> apiService
+    val appLayer: ZLayer[Any, Throwable, AppEnv] =
+      core >>>
+        gatewayConfiguration >>>
+        internalRepository >>>
+        internalService >>>
+        apiRepository >>>
+        apiService
   }
 
   object inMemory {
